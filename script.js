@@ -159,6 +159,7 @@
     const now = performance.now();
     if (now < lockUntil) return;
     lockUntil = now + LOCK_MS;
+    keepAwake();
     if (!state.started) {
       state.started = true;
       splash('Round 1<small>Mind the gap</small>'); announce('Round 1. Mind the gap. Draw the first card.');
@@ -188,6 +189,17 @@
       const p = on ? fsExit && fsExit.call(document) : fsRequest.call(fsEl);
       if (p && p.catch) p.catch(() => {});
     } catch { /* ignore */ }
+  }
+
+  // Keep the screen on while a game is running (the phone sits next to a paper sheet). The lock is released by the
+  // browser whenever the tab is hidden, so ask again when it becomes visible. Failures are ignored.
+  let wakeLock = null;
+  async function keepAwake() {
+    if (!('wakeLock' in navigator) || wakeLock) return;
+    try {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    } catch { wakeLock = null; }
   }
 
   // --- overlays: lock the page behind them, move focus in, give it back on close ---
@@ -349,6 +361,7 @@
       else if (k === 'f') toggleFullscreen();
       else if (k === 'n') newGame();
     });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && state.started) keepAwake(); });
     $('past').addEventListener('click', closePast);
     $('past-close').addEventListener('click', closePast);
     // After a mouse/touch click, drop focus so Enter/Space draw again instead of re-pressing the button.
