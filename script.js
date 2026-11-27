@@ -177,6 +177,19 @@
     save(); render(true);
   }
 
+  // Fullscreen: not available everywhere (iPhone Safari has none), may be prefixed, and the promise can reject.
+  const fsEl = document.documentElement;
+  const fsRequest = fsEl.requestFullscreen || fsEl.webkitRequestFullscreen;
+  const fsExit = document.exitFullscreen || document.webkitExitFullscreen;
+  function toggleFullscreen() {
+    if (!fsRequest) return;
+    try {
+      const on = document.fullscreenElement || document.webkitFullscreenElement;
+      const p = on ? fsExit && fsExit.call(document) : fsRequest.call(fsEl);
+      if (p && p.catch) p.catch(() => {});
+    } catch { /* ignore */ }
+  }
+
   // --- overlays: lock the page behind them, move focus in, give it back on close ---
   let opener = null;
   function openOverlay(el, focusEl) {
@@ -305,6 +318,7 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     state = restore(load()) || fresh();
+    if (!fsRequest) { const hint = $('hint-fs'); if (hint) hint.hidden = true; }
     $('card').addEventListener('click', draw);
     document.addEventListener('keydown', (e) => {
       // Leave browser shortcuts (Cmd/Ctrl+R, Ctrl+P, F5...) and held-down keys alone.
@@ -332,10 +346,8 @@
       }
       else if (k === 'p') openPast();
       else if (k === 'r') openRemaining();
-      else if (k === 'f') {
-        if (document.fullscreenElement) document.exitFullscreen();
-        else document.documentElement.requestFullscreen?.();
-      } else if (k === 'n') newGame();
+      else if (k === 'f') toggleFullscreen();
+      else if (k === 'n') newGame();
     });
     $('past').addEventListener('click', closePast);
     $('past-close').addEventListener('click', closePast);

@@ -1,0 +1,16 @@
+{
+  "name": "Next Station London Helper",
+  "short_name": "NS London",
+  "description": "Shuffles and flips the Station cards for Next Station: London.",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#1b1750",
+  "theme_color": "#1b1750",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
