@@ -50,7 +50,7 @@ body.loading .stage, body.loading .footer-hint { animation: failsafe .3s 3s forw
   padding: calc(18px + env(safe-area-inset-top)) calc(16px + env(safe-area-inset-right)) calc(54px + env(safe-area-inset-bottom)) calc(16px + env(safe-area-inset-left));
 }
 
-header { text-align: center; }
+header { text-align: center; position: relative; z-index: 10; }   /* above the cards, which can overflow upward on short windows and would cover the theme button */
 h1 {
   font-size: clamp(1.6rem, 4.5vw, 3rem); font-weight: 700; text-transform: uppercase; letter-spacing: .12em;
   text-shadow: 0 3px 0 var(--navy), 0 6px 18px rgba(0,0,0,.5);
