@@ -212,11 +212,9 @@
     const lines = [];
     if (lastTurn && lastTurn.sw === 'active') lines.push('Railroad Switch: build from any station on your line');
     if (lastTurn && lastTurn.sw === 'ignored') lines.push('Railroad Switch ignored (first two turns)');
-    if (over) lines.push(gameOver() ? 'Final stop: draw one last section, then score' : 'Last card: draw one last section');
     const tag = $('last-tag');
     tag.classList.toggle('off', !lines.length);
     tag.innerHTML = lines.join('<br>');
-    tag.classList.toggle('end', over);
 
     const n = undergroundDrawn();
     $('stops').innerHTML = Array.from({ length: PINK_TO_END }, (_, i) =>
