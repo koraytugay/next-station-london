@@ -74,8 +74,8 @@
     const k = 0.76 * 2 * r / 100;
     return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${CREAM}" stroke="${N}" stroke-width="${under ? 7 : 6}"/><g transform="translate(${cx - 50 * k} ${cy - 50 * k}) scale(${k})">${ICON[c.shape]}</g>`;
   };
-  const artFor = (c) => `<svg viewBox="0 0 200 280" preserveAspectRatio="xMidYMid slice">${c.kind === 'street' ? streetArt(c) : undergroundArt(c)}${badge(c)}</svg>`;
-  const ROUNDEL = '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#fff8e6" stroke="#1b1750" stroke-width="5"/><circle cx="50" cy="50" r="31" fill="none" stroke="#e0457b" stroke-width="12"/><rect x="12" y="41" width="76" height="18" rx="2" fill="#1b1750"/></svg>';
+  const artFor = (c) => `<svg aria-hidden="true" viewBox="0 0 200 280" preserveAspectRatio="xMidYMid slice">${c.kind === 'street' ? streetArt(c) : undergroundArt(c)}${badge(c)}</svg>`;
+  const ROUNDEL = '<svg aria-hidden="true" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#fff8e6" stroke="#1b1750" stroke-width="5"/><circle cx="50" cy="50" r="31" fill="none" stroke="#e0457b" stroke-width="12"/><rect x="12" y="41" width="76" height="18" rx="2" fill="#1b1750"/></svg>';
 
   const shuffle = (arr) => {
     const a = arr.slice();
@@ -128,9 +128,17 @@
 
   const $ = (id) => document.getElementById(id);
 
+  const nameOf = (c) => NAMES[c.shape] || c.shape;
+  const describe = (c) => c.shape === 'switch' ? 'Railroad Switch' : `${c.kind === 'underground' ? 'Underground' : 'Street'} ${nameOf(c)}`;
   function face(c) {
-    const name = NAMES[c.shape] || c.shape;
-    return `${artFor(c)}<div class="cap">${name}</div>`;
+    // visible caption is decorative for screen readers; the .sr text carries kind + shape
+    return `${artFor(c)}<div class="cap" aria-hidden="true">${nameOf(c)}</div><span class="sr">${describe(c)}</span>`;
+  }
+  // One polite announcement per action (cleared first so repeats are still read out).
+  function announce(msg) {
+    const el = $('sr-status');
+    el.textContent = '';
+    setTimeout(() => { el.textContent = msg; }, 30);
   }
 
   function splash(html) {
@@ -153,12 +161,12 @@
     lockUntil = now + LOCK_MS;
     if (!state.started) {
       state.started = true;
-      splash('Round 1<small>Mind the gap</small>');
+      splash('Round 1<small>Mind the gap</small>'); announce('Round 1. Mind the gap. Draw the first card.');
       save(); render(false); return;
     }
     if (roundOver()) {
-      if (gameOver()) { state = fresh(); state.started = true; splash('New game<small>Round 1</small>'); }
-      else { state = { round: state.round + 1, deck: shuffle(DECK), drawn: 0, started: true }; splash(`Round ${state.round}<small>Cards reshuffled</small>`); }
+      if (gameOver()) { state = fresh(); state.started = true; splash('New game<small>Round 1</small>'); announce('New game. Round 1. Cards shuffled.'); }
+      else { state = { round: state.round + 1, deck: shuffle(DECK), drawn: 0, started: true }; splash(`Round ${state.round}<small>Cards reshuffled</small>`); announce(`Round ${state.round}. Cards reshuffled.`); }
       save(); render(false); return;
     }
     const turnNo = turns().length + 1;
@@ -218,7 +226,7 @@
     held.hidden = !heldCard;
     if (heldCard) {
       held.className = 'card held';
-      held.innerHTML = artFor(heldCard) + `<div class="held-cap"><svg viewBox="0 0 100 100">${ICON.switch}</svg>Railroad Switch</div>`;
+      held.innerHTML = artFor(heldCard) + `<div class="held-cap"><svg aria-hidden="true" viewBox="0 0 100 100">${ICON.switch}</svg>Railroad Switch</div>`;
       if (animate && wasHidden) { void held.offsetWidth; held.classList.add('peek'); }
     }
 
@@ -255,6 +263,16 @@
     tag.innerHTML = lines.join('<br>');
 
     const n = undergroundDrawn();
+    $('stops').setAttribute('aria-label', `${n} of ${PINK_TO_END} Underground cards drawn`);
+    card.setAttribute('aria-label', !last ? (state.started ? `Round ${state.round}. Draw the first card` : 'Start the journey') : (over ? 'Round over. Draw to continue' : 'Draw next card'));
+    if (animate && lastTurn) {
+      const parts = lastTurn.cards.length === 2 ? `${describe(lastTurn.cards[0])}, then ${describe(lastTurn.cards[1])}` : describe(lastTurn.cards[0]);
+      const extra = [];
+      if (lastTurn.sw === 'ignored') extra.push('Railroad Switch ignored, first two turns');
+      if (lastTurn.sw === 'active') extra.push('Build from any station on your line');
+      if (over) extra.push(gameOver() ? 'Last card of the game' : 'Last card of the round, draw one last section');
+      announce([`Turn ${t.length}`, parts, ...extra].join('. ') + '.');
+    }
     $('stops').innerHTML = Array.from({ length: PINK_TO_END }, (_, i) =>
       `<div class="stop${i < n ? ' on' : ''}${over && i === PINK_TO_END - 1 ? ' final' : ''}"></div>`).join('');
   }
