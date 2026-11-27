@@ -145,9 +145,12 @@
       save(); render(false); return;
     }
     if (roundOver()) {
+      const sh = captureShuffle();
       if (gameOver()) { state = fresh(1, true); splash('New game<small>Round 1</small>'); announce('New game. Round 1. Cards shuffled.'); }
       else { state = fresh(state.round + 1, true); splash(`Round ${state.round}<small>Cards reshuffled</small>`); announce(`Round ${state.round}. Cards reshuffled.`); }
-      save(); render(false); return;
+      save(); render(false);
+      if (sh) { playShuffle(sh); lockUntil = now + SHUFFLE_MS + 500; }
+      return;
     }
     if (!state.deck[state.drawn]) return;
     if (!$('table').hidden) closeTable();
@@ -343,6 +346,73 @@
       ], { duration: REVEAL_MS, delay: REVEAL_DELAY_MS, easing: 'cubic-bezier(.3,.7,.25,1)', fill: 'backwards' }).finished
         .catch(() => {}).then(() => { el.remove(); if (token === fxToken) card.style.visibility = ''; });
     }
+  }
+
+  // --- end-of-round shuffle (desktop): every card on the table, in the discard pile and in the draw pile is turned face
+  // down, gathered in the middle, riffled together and laid back neatly on the draw pile. ---
+  const GATHER_MS = 700, STEP_MS = 380, CUTS = 4, LAY_MS = 600;   // CUTS: how many times the pile is cut and riffled
+  const SHUFFLE_MS = GATHER_MS + CUTS * 2 * STEP_MS + LAY_MS;
+  function captureShuffle() {
+    const deckEls = [...$('deck').querySelectorAll('.card')];
+    if (calm.matches || !deckEls.length || !deckEls[0].offsetWidth) return null;
+    const grab = (el, face) => {
+      const c = centre(el.getBoundingClientRect());
+      const node = el.cloneNode(true);
+      node.className = el.className.split(' ').filter(x => !['held', 'peek', 'dealt', 'latest'].includes(x)).join(' ');
+      return { node, cx: c.x, cy: c.y, w: el.offsetWidth, h: el.offsetHeight, face };
+    };
+    const items = [...$('pile').children].map(el => grab(el, true));
+    if (!$('held').hidden) items.push(grab($('held'), true));
+    if (!$('card').classList.contains('back')) items.push(grab($('card'), true));
+    deckEls.forEach(el => items.push(grab(el, false)));
+    return { items, smallW: deckEls[0].offsetWidth };
+  }
+  function playShuffle(sh) {
+    const deck = $('deck'), card = $('card'), token = ++fxToken;
+    const slots = [...deck.querySelectorAll('.card')].map(el => centre(el.getBoundingClientRect()));
+    const g = centre($('stack').getBoundingClientRect());
+    if (!slots.length) return;
+    deck.style.visibility = 'hidden'; card.style.visibility = 'hidden';
+    const rnd = (a) => (Math.random() - .5) * a, sw = sh.smallW * .85;
+    const order = sh.items.map((_, i) => i).sort(() => Math.random() - .5);   // who ends up where in the new deck
+    const flyers = sh.items.map((it, i) => {
+      const el = document.createElement('div');
+      if (it.face) {
+        it.node.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;margin:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;';
+        const back = document.createElement('div'); back.className = 'card small back';
+        back.style.cssText = `position:absolute;inset:0;width:100%;height:100%;margin:0;border-width:${it.w > 200 ? 4 : 3}px;border-radius:${it.w > 200 ? 18 : 12}px;transform:rotateY(180deg);backface-visibility:hidden;-webkit-backface-visibility:hidden;`;
+        el.append(it.node, back);
+      } else {
+        it.node.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;margin:0;';
+        el.append(it.node);
+      }
+      fly(el, it.w, it.h, it.cx, it.cy);
+      if (it.face) el.style.transformStyle = 'preserve-3d';   // after fly(), which resets the inline style; without it the backface hiding does not work
+      const slot = order[i] % slots.length, k = sh.smallW / it.w, side = i % 2 ? 1 : -1, ry = it.face ? 180 : 0;
+      el.style.zIndex = 50 + (slots.length - slot) * 100 + (i % 100);
+      const f = (x, y, r, sc, flip) => `perspective(1400px) translate(${x - it.cx}px, ${y - it.cy}px) rotate(${r}deg) scale(${sc})${it.face ? ` rotateY(${flip}deg)` : ''}`;
+      // timings in ms, at the pace that felt right: gather, then CUTS cut-and-riffle rounds, then lay the stack down
+      const at = (ms) => ms / SHUFFLE_MS;
+      const frames = [
+        { transform: f(it.cx, it.cy, 0, 1, 0), offset: 0 },
+        { transform: f(g.x + rnd(14), g.y + rnd(14), rnd(14), k, ry), offset: at(GATHER_MS) }      // gathered, face down
+      ];
+      for (let c = 0; c < CUTS; c++) {
+        const t0 = GATHER_MS + c * 2 * STEP_MS, sd = c % 2 ? -side : side;
+        frames.push({ transform: f(g.x + sd * sw, g.y + rnd(20), sd * 7 + rnd(6), k, ry), offset: at(t0 + STEP_MS) });     // cut in two...
+        frames.push({ transform: f(g.x + rnd(16), g.y + rnd(16), rnd(12), k, ry), offset: at(t0 + 2 * STEP_MS) });          // ...riffled together
+      }
+      frames.push({ transform: f(slots[slot].x, slots[slot].y, 0, k, ry), offset: 1 });                                       // laid back on the draw pile
+      frames.forEach(fr => { fr.easing = 'ease-in-out'; });   // ease every move on its own, so each cut keeps the same pace
+      el.animate(frames, { duration: SHUFFLE_MS, delay: Math.min(i * 10, 500), easing: 'linear', fill: 'both' });
+      return el;
+    });
+    setTimeout(() => {
+      flyers.forEach(el => el.remove());
+      if (token !== fxToken) return;
+      deck.style.visibility = ''; card.style.visibility = '';
+      void card.offsetWidth; card.classList.add('dealt');
+    }, SHUFFLE_MS + 700);
   }
 
   function render(animate) {
