@@ -17,6 +17,21 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => { event.waitUntil(self.clients.claim()); });
 
+// All page navigations share one cache entry, so links like /?utm=x or /index.html?foo do not pile up copies.
+const keyFor = (req) => (req.mode === 'navigate' ? 'index.html' : req);
+
+// Versioned files (?v=N): once a newer version is cached, drop the older ones so the cache does not grow every release.
+async function pruneOldVersions(cache, url) {
+  const u = new URL(url);
+  if (!u.searchParams.has('v')) return;
+  const v = Number(u.searchParams.get('v'));
+  if (!Number.isFinite(v)) return;
+  for (const k of await cache.keys()) {
+    const ku = new URL(k.url);
+    if (ku.pathname === u.pathname && ku.searchParams.has('v') && Number(ku.searchParams.get('v')) < v) await cache.delete(k);
+  }
+}
+
 // If the network has not answered after this long and we already hold a copy, use the copy (the network request keeps
 // going and refreshes the cache for next time). On a flaky connection this beats waiting 30 seconds for a page we have.
 const NETWORK_TIMEOUT_MS = 2000;
@@ -24,24 +39,31 @@ const NETWORK_TIMEOUT_MS = 2000;
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
-  event.respondWith((async () => {
-    const cache = await caches.open(CACHE);
-    const network = fetch(req, { cache: 'no-cache' }).then((res) => {
-      if (res.ok) cache.put(req, res.clone());
-      return res;
-    });
-    // Only an exact copy may beat a slow network: a different version of the same file could mismatch the page.
-    const exact = await cache.match(req);
-    try {
-      if (!exact) return await network;
-      return await Promise.race([
-        network,
-        new Promise((resolve) => setTimeout(() => resolve(exact), NETWORK_TIMEOUT_MS)),
-      ]);
-    } catch (err) {
-      // network failed outright (offline)
-      return exact || (await cache.match(req, { ignoreSearch: true })) ||
-        (req.mode === 'navigate' ? await cache.match('index.html') : undefined) || Response.error();
-    }
-  })());
+  event.respondWith(handle(event, req));
 });
+
+async function handle(event, req) {
+  const cache = await caches.open(CACHE);
+  const key = keyFor(req);
+  const network = fetch(req, { cache: 'no-cache' });
+  // Store in the background but keep the worker alive until the write is done; only complete (200) responses,
+  // never partial (206) or error pages.
+  event.waitUntil(network.then(async (res) => {
+    if (res.status !== 200) return;
+    await cache.put(key, res.clone());
+    await pruneOldVersions(cache, req.url);
+  }).catch(() => {}));
+  // Only an exact copy may beat a slow network: a different version of the same file could mismatch the page.
+  const exact = await cache.match(key);
+  try {
+    if (!exact) return await network;
+    return await Promise.race([
+      network,
+      new Promise((resolve) => setTimeout(() => resolve(exact), NETWORK_TIMEOUT_MS)),
+    ]);
+  } catch (err) {
+    // network failed outright (offline)
+    return exact || (await cache.match(req, { ignoreSearch: true })) ||
+      (req.mode === 'navigate' ? await cache.match('index.html') : undefined) || Response.error();
+  }
+}
