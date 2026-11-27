@@ -1,6 +1,15 @@
 // Next Station London helper: shuffles the 11 Station cards and ends the round
 // as soon as the 5th pink Underground card is drawn. 4 rounds per game.
 (() => {
+  // If the artwork script is missing or stale the page cannot work: say so instead of staying blank.
+  if (!window.NSLArt) {
+    document.body.classList.remove('loading');
+    const msg = document.getElementById('fatal-msg');
+    if (msg) msg.textContent = 'Part of the page did not load. Check your connection and reload.';
+    const box = document.getElementById('fatal'); if (box) box.hidden = false;
+    document.querySelectorAll('.stage, .footer-hint, .disclaimer').forEach((el) => { el.hidden = true; });
+    return;
+  }
   const TOTAL_ROUNDS = 4;
   const PINK_TO_END = 5;
   const SWITCH_MIN_TURN = 3;   // a Railroad Switch flipped on turn 1 or 2 is ignored

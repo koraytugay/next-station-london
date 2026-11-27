@@ -28,13 +28,19 @@ body {
 }
 .bg {
   position: fixed; inset: 0; z-index: -2;
-  background: url('bg.svg?v=31') center / cover no-repeat;
+  background: url('bg.svg?v=32') center / cover no-repeat;
   transform: scale(1.04);
 }
 .bg::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 40%, rgba(15,12,60,.55) 100%); }
 
 .stage, .footer-hint, .disclaimer { transition: opacity .5s ease; }
 body.loading .stage, body.loading .footer-hint, body.loading .disclaimer { opacity: 0; }
+/* Failsafe: if the script never removes .loading (it failed or is blocked), reveal the page anyway after 3 seconds */
+body.loading .stage, body.loading .footer-hint, body.loading .disclaimer { animation: failsafe .3s 3s forwards; }
+@keyframes failsafe { to { opacity: 1; } }
+.fatal { position: fixed; inset: 0; z-index: 100; align-items: center; justify-content: center; padding: 24px; text-align: center; background: var(--navy); }
+.fatal:not([hidden]) { display: flex; }
+.fatal p { max-width: 420px; font-size: 1.25rem; font-weight: 500; line-height: 1.4; color: var(--cream); }
 
 .stage {
   height: 100%; display: flex; flex-direction: column; align-items: center; gap: 6px; overflow-y: auto;
@@ -265,6 +271,7 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 /* Respect reduced-motion: no animation, keep static highlights */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
+  body.loading .stage, body.loading .footer-hint, body.loading .disclaimer { animation: failsafe .01s 3s forwards !important; }   /* keep the failsafe */
   .stack.is-final::before { opacity: .55; }
   .stop.final::before { opacity: 1; }
 }

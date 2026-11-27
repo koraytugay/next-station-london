@@ -14,10 +14,12 @@
   <link rel="manifest" href="manifest.webmanifest">
   <title>Next Station London Helper</title>
   <link rel="preload" href="fredoka-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="style.css?v=31">
+  <noscript><style>.stage, .footer-hint, .disclaimer { display: none !important; } #fatal { display: flex !important; }</style></noscript>
+  <link rel="stylesheet" href="style.css?v=32">
 </head>
 <body class="loading">
   <div class="bg" aria-hidden="true"></div>
+  <div id="fatal" class="fatal" role="alert" hidden><p id="fatal-msg">This helper needs JavaScript. Please turn it on and reload the page.</p></div>
   <div id="sr-status" class="sr" role="status" aria-live="polite"></div>
 
   <div id="stage" class="stage">
@@ -80,7 +82,7 @@
   <div class="footer-hint"><strong>Enter</strong> draw · <strong>P</strong> past cards · <strong>R</strong> remaining · <span id="hint-fs"><strong>F</strong> full screen · </span><strong>N</strong> new game</div>
   <div class="disclaimer">Unofficial fan-made tool. Next Station London™ is a trademark of Blue Orange Edition.</div>
 
-  <script src="art.js?v=31"></script>
-  <script src="script.js?v=31"></script>
+  <script src="art.js?v=32"></script>
+  <script src="script.js?v=32"></script>
 </body>
 </html>
