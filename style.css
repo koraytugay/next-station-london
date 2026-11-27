@@ -14,7 +14,7 @@
   --vh: 100vh;
   --peek: 70px;            /* how far the held Railroad Switch sticks out above the card */
   --tail: 68px;            /* empty space under the card, keeps it centred between the badges and the counter */
-  --pile-step: 16px;       /* each discard sits this much lower than the previous one */
+  --pile-step: 12px;       /* each discard sits this much lower than the previous one */
   --small-w: min(14vw, 150px);
   --splash-ms: 1600;
 }
@@ -29,8 +29,7 @@ body {
 }
 .bg {
   position: fixed; inset: 0; z-index: -2;
-  background: url('bg.svg?v=40') center / cover no-repeat;
-  transform: scale(1.04);
+  background: url('bg.svg?v=41') center / cover no-repeat;
 }
 .bg::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 40%, rgba(15,12,60,.55) 100%); }
 
@@ -85,7 +84,7 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 }
 #card { z-index: 1; }
 /* Held Railroad Switch: tucked behind the current card, peeking out above it */
-.card.held { position: absolute; left: 0; top: calc(var(--peek) * -1); z-index: 0; cursor: default; pointer-events: none; transform: translateX(46px) rotate(6deg); transform-origin: bottom left; border-color: var(--yellow); box-shadow: 0 0 0 3px var(--navy), 0 0 30px rgba(255,233,74,.8), 0 14px 30px rgba(0,0,0,.5); }
+.card.held { position: absolute; left: 0; top: calc(var(--peek) * -1); z-index: 0; cursor: default; pointer-events: none; transform: rotate(3deg); transform-origin: bottom left; border-color: var(--yellow); box-shadow: 0 0 0 3px var(--navy), 0 0 30px rgba(255,233,74,.8), 0 14px 30px rgba(0,0,0,.5); }
 .card.held.peek { animation: peek .5s ease-out; }
 @keyframes peek { from { transform: translate(0, var(--peek)) rotate(0); } }
 .held-cap {
@@ -126,7 +125,7 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 .stop.on { background: var(--pink); transform: scale(1.12); }
 .stop.on::after { content: ''; position: absolute; left: -9px; right: -9px; top: 50%; height: 7px; margin-top: -3.5px; background: var(--cream); border-radius: 2px; }
 .stop.final::before { content: ''; position: absolute; inset: -11px; border-radius: 50%; border: 6px solid rgba(255,233,74,.95); animation: pulse-layer .9s ease-in-out infinite; }
-.line-label { margin-top: 4px; font-size: .75rem; letter-spacing: .2em; text-transform: uppercase; opacity: .85; text-shadow: 0 2px 4px rgba(0,0,0,.6); }
+.line-label { display: inline-block; margin-top: 4px; padding: 2px 12px; border-radius: 999px; background: transparent; font-size: .75rem; letter-spacing: .2em; text-transform: uppercase; opacity: .85; text-shadow: 0 2px 4px rgba(0,0,0,.6); }
 
 /* Splash */
 .splash { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(27,23,80,.72); z-index: 50; animation: fade calc(var(--splash-ms) * 1ms) ease forwards; pointer-events: none; }
@@ -191,7 +190,6 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
   .disclaimer { display: none; }
   .stage { padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
   .card { --reserve: 400px; --cap: 80vw; }
-  .card.held { transform: translateX(20px) rotate(4deg); }
 }
 /* Very narrow phones: keep the three buttons on one row */
 @media (max-width: 360px) {
@@ -255,12 +253,12 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 
 
 /* ---------- Themes: one button (or the T key) cycles them; dusk is the default ---------- */
-html[data-theme="day"]   .bg { background-image: url('bg-day.svg?v=40');   transform: none; }
-html[data-theme="night"] .bg { background-image: url('bg-night.svg?v=40'); transform: none; }
-html[data-theme="calm"]  .bg { background-image: url('bg-calm.svg?v=40');  transform: none; }
+html[data-theme="day"]   .bg { background-image: url('bg-day.svg?v=41'); }
+html[data-theme="night"] .bg { background-image: url('bg-night.svg?v=41'); }
+html[data-theme="calm"]  .bg { background-image: url('bg-calm.svg?v=41'); }
 /* the day backgrounds are light: lighter vignette, and the small captions get a navy pill so they stay readable */
 html[data-theme="day"] .bg::after, html[data-theme="calm"] .bg::after { background: radial-gradient(ellipse at center, transparent 60%, rgba(27,23,80,.22) 100%); }
-html[data-theme="day"] .line-label, html[data-theme="calm"] .line-label { display: inline-block; background: var(--navy); padding: 2px 12px; border-radius: 999px; opacity: 1; text-shadow: none; }
+html[data-theme="day"] .line-label, html[data-theme="calm"] .line-label { background: var(--navy); opacity: 1; text-shadow: none; }   /* colours only: no theme may change a size */
 
 .badges { align-items: center; }
 .theme-btn {
@@ -277,13 +275,13 @@ html[data-theme="day"] .line-label, html[data-theme="calm"] .line-label { displa
 .deal { position: relative; }
 .deal::before {
   content: ''; position: absolute; z-index: -1; pointer-events: none;
-  left: -28px; right: -74px; top: calc(var(--peek) - 12px); bottom: calc(var(--tail) - 18px);   /* right side also covers the held switch card */
+  left: -36px; right: -36px; top: calc(var(--peek) - 12px); bottom: calc(var(--tail) - 18px);   /* equal both sides: the cards sit in the middle of it */
   border-radius: 28px; background: rgba(27,23,80,.58); border: 3px solid rgba(255,248,230,.55);
   box-shadow: 0 12px 40px rgba(0,0,0,.35); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
 }
 
 
-@media (max-width: 760px) { .deal::before { left: -18px; right: -30px; } }   /* narrower held-card offset on phones; must stay inside the screen */
+@media (max-width: 760px) { .deal::before { left: -22px; right: -22px; } }   /* still inside the screen on the narrowest phones */
 
 /* Respect reduced-motion: no animation, keep static highlights */
 @media (prefers-reduced-motion: reduce) {
