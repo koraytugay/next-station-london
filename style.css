@@ -28,7 +28,7 @@ body {
 }
 .bg {
   position: fixed; inset: 0; z-index: -2;
-  background: url('bg.svg?v=37') center / cover no-repeat;
+  background: url('bg.svg?v=38') center / cover no-repeat;
   transform: scale(1.04);
 }
 .bg::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 40%, rgba(15,12,60,.55) 100%); }
@@ -77,12 +77,6 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
   background: var(--navy-2); touch-action: manipulation;
 }
 .card > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
-.card .cap {
-  position: absolute; left: 50%; transform: translateX(-50%); bottom: 10px; white-space: nowrap;
-  background: rgba(27,23,80,.88); color: var(--cream);
-  padding: 2px 14px; border-radius: 999px; font-weight: 600; font-size: .85rem; letter-spacing: .08em; text-transform: uppercase;
-}
-.card.street .cap { top: 10px; bottom: auto; }
 .card.dealt { animation: deal .55s cubic-bezier(.2,.8,.2,1); }
 @keyframes deal {
   from { transform: translateY(-60px) rotateY(100deg) scale(.9); }
@@ -103,7 +97,6 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 .card.small { --w: var(--small-w); cursor: default; pointer-events: none; border-width: 3px; border-radius: 12px; }
 .pile { --w: var(--small-w); position: relative; width: var(--w); height: 0; flex: none; align-self: center; }
 .pile .card { position: absolute; left: 0; top: calc(var(--w) * -0.7 - 40px); transform: translate(var(--dx), calc(var(--n) * var(--pile-step))) rotate(var(--rot));  box-shadow: 0 8px 18px rgba(0,0,0,.45); }
-.card.small .cap { display: none; }
 @media (max-width: 900px) { .pile { display: none; } }
 .card.back { background: var(--yellow); display: flex; flex-direction: column; color: var(--navy); text-align: center; }
 .back-top {
@@ -156,7 +149,6 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 .overlay-box { text-align: center; max-width: 900px; }
 .overlay h2 { font-size: 1.8rem; letter-spacing: .12em; text-transform: uppercase; color: var(--yellow); margin-bottom: 18px; }
 .past-grid .card { --w: min(28vw, 150px); cursor: default; }
-.past-grid .cap { left: calc(50% + 12px); font-size: .6rem; padding: 2px 8px; letter-spacing: .04em; white-space: normal; text-align: center; line-height: 1.15; border-radius: 10px; }
 .past-grid { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
 .hint { margin-top: 18px; opacity: .7; }
 #past-close { margin-top: 22px; }
@@ -263,7 +255,7 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
   background: var(--navy); color: #fff; border: 2px solid #fff; display: grid; place-items: center; font-weight: 700; font-size: .95rem;
 }
 .past-grid .card.latest { box-shadow: 0 0 0 4px var(--yellow), 0 0 22px 4px rgba(255,233,74,.8); }
-/* in the grid the cards are small: shrink the turn badge (the caption is shifted clear of it above) */
+/* in the grid the cards are small: shrink the turn badge */
 .past-grid .num { width: 24px; height: 24px; top: 4px; left: 4px; font-size: .8rem; border-width: 2px; }
 
 /* Visually hidden, still read by screen readers */
