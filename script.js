@@ -316,6 +316,13 @@
       else if (k === 'n') newGame();
     });
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && state.started) keepAwake(); });
+    // Another tab changed the saved game: adopt it instead of overwriting it on our next move.
+    window.addEventListener('storage', (e) => {
+      if (e.key !== KEY || !e.newValue) return;
+      let incoming = null;
+      try { incoming = restore(JSON.parse(e.newValue)); } catch { /* ignore */ }
+      if (incoming) { state = incoming; render(false); }
+    });
     $('past').addEventListener('click', closePast);
     $('past-close').addEventListener('click', closePast);
     // After a mouse/touch click, drop focus so Enter/Space draw again instead of re-pressing the button.
