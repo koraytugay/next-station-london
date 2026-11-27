@@ -359,6 +359,9 @@
     $('confirm-yes').addEventListener('click', confirmNewGame);
     $('confirm-no').addEventListener('click', closeConfirm);
     $('confirm').addEventListener('click', (e) => { if (e.target === $('confirm')) closeConfirm(); });
+    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
     try { render(false); }
     catch (err) { console.error(err); state = fresh(); save(); render(false); }
     finally { requestAnimationFrame(() => document.body.classList.remove('loading')); }

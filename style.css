@@ -1,3 +1,8 @@
+/* Fredoka (SIL Open Font License), self-hosted so the page works offline and loads nothing from third parties */
+@font-face {
+  font-family: 'Fredoka'; font-style: normal; font-weight: 400 700; font-display: swap;
+  src: url('fredoka-latin.woff2') format('woff2');
+}
 :root {
   --navy: #1b1750;
   --navy-2: #2b2470;
