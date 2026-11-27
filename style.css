@@ -205,3 +205,10 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
   padding: 3px 0; font-weight: 700; font-size: .95rem; letter-spacing: .14em; text-transform: uppercase;
   box-shadow: 0 4px 10px rgba(0,0,0,.4); z-index: 5;
 }
+
+/* Past cards: turn numbers, latest highlighted */
+.num {
+  position: absolute; top: 6px; left: 6px; z-index: 5; width: 30px; height: 30px; border-radius: 50%;
+  background: var(--navy); color: #fff; border: 2px solid #fff; display: grid; place-items: center; font-weight: 700; font-size: .95rem;
+}
+.past-grid .card.latest { box-shadow: 0 0 0 4px var(--yellow), 0 0 22px 4px rgba(255,233,74,.8); }

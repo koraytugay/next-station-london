@@ -160,21 +160,25 @@
   // mode 'past': cards drawn this round, in order. mode 'left': cards still in the deck, in a FIXED order
   // (never the real draw order, so nothing is given away).
   function openCards(mode) {
-    let cards;
+    let items;   // [{c, n}] n = turn number (the two cards of a Railroad Switch turn share one number)
     if (mode === 'past') {
-      cards = state.deck.slice(0, state.drawn);
+      items = turns().flatMap((t, i) => t.cards.map(c => ({ c, n: i + 1 })));
       $('past-title').textContent = 'Drawn this round';
-      $('past-sub').textContent = '';
+      $('past-sub').textContent = items.length ? 'In the order they were drawn. The latest card is highlighted.' : '';
     } else {
       const left = state.deck.slice(state.drawn);
       const rank = (c) => DECK.findIndex(d => d.kind === c.kind && d.shape === c.shape);
-      cards = left.slice().sort((a, b) => rank(a) - rank(b));
+      items = left.slice().sort((a, b) => rank(a) - rank(b)).map(c => ({ c }));
       const pink = left.filter(c => c.kind === 'underground').length;
       $('past-title').textContent = 'Still in the deck';
       $('past-sub').textContent = `${left.length} cards left, ${pink} Underground. Order is hidden.`;
     }
-    $('past-grid').innerHTML = cards.map(c => `<div class="card ${c.kind}">${face(c)}</div>`).join('') || '<p>Nothing here.</p>';
+    $('past-grid').innerHTML = items.map((x, i) =>
+      `<div class="card ${x.c.kind}${mode === 'past' && i === items.length - 1 ? ' latest' : ''}">${face(x.c)}${x.n ? `<div class="num">${x.n}</div>` : ''}</div>`
+    ).join('') || '<p>Nothing here.</p>';
     $('past').hidden = false;
+    const latest = $('past-grid').querySelector('.latest');
+    if (latest) latest.scrollIntoView({ block: 'nearest' });
   }
   const openPast = () => openCards('past');
   const openRemaining = () => openCards('left');
