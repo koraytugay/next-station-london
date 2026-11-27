@@ -75,7 +75,7 @@
     return `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${CREAM}" stroke="${N}" stroke-width="${under ? 7 : 6}"/><g transform="translate(${cx - 50 * k} ${cy - 50 * k}) scale(${k})">${ICON[c.shape]}</g>`;
   };
   const artFor = (c) => `<svg viewBox="0 0 200 280" preserveAspectRatio="xMidYMid slice">${c.kind === 'street' ? streetArt(c) : undergroundArt(c)}${badge(c)}</svg>`;
-  const ROUNDEL = '<svg viewBox="0 0 100 100" style="width:90px"><circle cx="50" cy="50" r="36" fill="none" stroke="#e0457b" stroke-width="14"/><rect x="6" y="40" width="88" height="20" rx="2" fill="#1b1750"/></svg>';
+  const ROUNDEL = '<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="46" fill="#fff8e6" stroke="#1b1750" stroke-width="5"/><circle cx="50" cy="50" r="31" fill="none" stroke="#e0457b" stroke-width="12"/><rect x="12" y="41" width="76" height="18" rx="2" fill="#1b1750"/></svg>';
 
   const shuffle = (arr) => {
     const a = arr.slice();
@@ -152,7 +152,13 @@
   }
 
   function newGame() {
-    if (state.started && !confirm('Start a new game?')) return;
+    if (!state.started) return;
+    $('confirm').hidden = false;
+    $('confirm-no').focus();
+  }
+  function closeConfirm() { $('confirm').hidden = true; }
+  function confirmNewGame() {
+    closeConfirm();
     state = fresh(); save(); render(false);
   }
 
@@ -184,8 +190,9 @@
     card.className = 'card';
     if (!last) {
       card.classList.add('back');
-      card.innerHTML = ROUNDEL +
-        `<p>${state.started ? `Round ${state.round}<br>Press <strong>Enter</strong> to draw` : 'Press <strong>Enter</strong><br>to start the journey'}</p>`;
+      card.innerHTML = `<div class="back-top">${ROUNDEL}</div><div class="back-bottom">
+        <div class="back-title">${state.started ? `Round ${state.round}` : 'Start the journey'}</div>
+        <div class="back-sub">Press <kbd>Enter</kbd>${state.started ? ' to draw' : ''}</div></div>`;
     } else {
       card.classList.add(last.kind);
       card.innerHTML = face(last);
@@ -221,6 +228,14 @@
     $('card').addEventListener('click', draw);
     document.addEventListener('keydown', (e) => {
       const k = e.key.toLowerCase();
+      if (!$('confirm').hidden) {
+        if (k === 'y') confirmNewGame();
+        else if (k === 'n' || k === 'escape') closeConfirm();
+        else if (k === 'arrowleft' || k === 'arrowright' || k === 'tab') { /* let focus move between buttons */ return; }
+        else if (k === 'enter' || k === ' ') return; // activates the focused button (No by default)
+        e.preventDefault();
+        return;
+      }
       if (!$('past').hidden) { closePast(); return; }
       if (k === 'enter' || k === ' ') { e.preventDefault(); draw(); }
       else if (k === 'backspace' || k === 'u') undo();
@@ -231,6 +246,9 @@
       } else if (k === 'n') newGame();
     });
     $('past').addEventListener('click', closePast);
+    $('confirm-yes').addEventListener('click', confirmNewGame);
+    $('confirm-no').addEventListener('click', closeConfirm);
+    $('confirm').addEventListener('click', (e) => { if (e.target === $('confirm')) closeConfirm(); });
     render(false);
     requestAnimationFrame(() => document.body.classList.remove('loading'));
   });
