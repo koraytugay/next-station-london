@@ -14,7 +14,9 @@
   --vh: 100vh;
   --peek: 70px;            /* how far the held Railroad Switch sticks out above the card */
   --tail: 68px;            /* empty space under the card, keeps it centred between the badges and the counter */
+  --drop: 40px;            /* how far the card moves down while a Railroad Switch peeks out behind it */
   --pile-step: 12px;       /* each discard sits this much lower than the previous one */
+  --back-art: url('bg-day.svg?v=42');
   --small-w: min(14vw, 150px);
   --splash-ms: 1600;
   --bg-opacity: .5;        /* how strongly the background shows; the rest fades into the navy page colour */
@@ -61,9 +63,9 @@ h1 span { color: var(--yellow); }
   box-shadow: 0 4px 10px rgba(0,0,0,.35); -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
 }
 
-main { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 0; }
+main { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 0; }
 .deal { display: flex; flex-direction: column; align-items: center; gap: 14px; perspective: 1400px; padding-top: calc(var(--peek) + 6px); padding-bottom: var(--tail); }
-.row { display: flex; align-items: center; justify-content: center; gap: 28px; }
+.row { position: relative; display: flex; align-items: center; justify-content: center; }
 
 /* Cards: portrait, with the symbol rings from the real cards */
 .stack { position: relative; }
@@ -84,6 +86,7 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
   to   { transform: none; }
 }
 #card { z-index: 1; }
+.stack.has-held #card { transform: translateY(var(--drop)); }   /* a Railroad Switch is waiting behind: the card sits lower, so more of the switch shows */
 /* Held Railroad Switch: tucked behind the current card, peeking out above it */
 .card.held { position: absolute; left: 0; top: calc(var(--peek) * -1); z-index: 0; cursor: default; pointer-events: none; transform: rotate(3deg); transform-origin: bottom left; border-color: var(--yellow); box-shadow: 0 0 0 3px var(--navy), 0 0 30px rgba(255,233,74,.8), 0 14px 30px rgba(0,0,0,.5); }
 .card.held.peek { animation: peek .5s ease-out; }
@@ -96,16 +99,18 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 }
 .held-cap svg { width: clamp(20px, calc(var(--w) / 8), 34px); height: clamp(20px, calc(var(--w) / 8), 34px); border-radius: 6px; display: block; flex: none; }
 .card.small { --w: var(--small-w); cursor: default; pointer-events: none; border-width: 3px; border-radius: 12px; }
-.pile { --w: var(--small-w); position: relative; width: var(--w); height: 0; flex: none; align-self: center; }
-.pile .card { position: absolute; left: 0; top: calc(var(--w) * -0.7 - 40px); transform: translate(var(--dx), calc(var(--n) * var(--pile-step))) rotate(var(--rot));  box-shadow: 0 8px 18px rgba(0,0,0,.45); }
-@media (max-width: 900px) { .pile { display: none; } }
-.card.back { background: var(--yellow); display: flex; flex-direction: column; color: var(--navy); text-align: center; }
-.back-top {
-  flex: 0 0 52%; background: var(--pink); display: grid; place-items: center;
-  border-top: 7px solid var(--navy); border-bottom: 7px solid var(--navy);
+.pile { --w: var(--small-w); position: absolute; top: 50%; left: calc(100% + 96px); width: var(--w); height: 0; }   /* out of the flow, so the drawn card alone is centred */
+.pile .card { position: absolute; left: 0; top: calc(var(--w) * -0.7 - 40px); transform: translate(var(--dx), calc(var(--n) * var(--pile-step) + var(--dy, 0px))) rotate(var(--rot));  box-shadow: 0 8px 18px rgba(0,0,0,.45); pointer-events: auto; cursor: pointer; }   /* click the discard pile to see the past cards */
+/* The draw deck, on the left: a tidy stack of card backs */
+.deck { --w: var(--small-w); position: absolute; top: 50%; right: calc(100% + 96px); width: var(--w); height: 0; cursor: pointer; }
+.deck:focus-visible { outline: 3px solid var(--yellow); outline-offset: 8px; border-radius: 12px; }
+.deck .card { position: absolute; left: 0; top: calc(var(--w) * -0.7 - 40px); transform: translate(calc(var(--n) * -3px), calc(var(--n) * -3px)); box-shadow: 0 4px 10px rgba(0,0,0,.45); pointer-events: auto; cursor: pointer; }
+@media (max-width: 900px) { .pile, .deck { display: none; } }
+.card.back { background: var(--back-art) 100% 30.7% / 390.2% auto no-repeat, var(--sky-fallback, #8ccbf0); color: var(--navy); text-align: center; }   /* the card back is a crop of the background: the London Eye and the couple under the umbrella */
+.back-bottom {
+  position: absolute; left: 0; right: 0; bottom: 0; background: var(--yellow); border-top: 6px solid var(--navy);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 12px 10px;
 }
-.back-top svg { width: 56%; height: auto; filter: drop-shadow(0 5px 0 rgba(27,23,80,.3)); }
-.back-bottom { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 0 10px; }
 .back-title { font-size: clamp(1.2rem, 2.2vw, 1.7rem); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; line-height: 1.1; }
 .back-sub { font-size: 1rem; font-weight: 500; }
 .back-sub kbd { background: #fff; border: 3px solid var(--navy); border-radius: 8px; padding: 0 10px; font-family: inherit; font-weight: 700; box-shadow: 0 3px 0 var(--navy); }
@@ -179,7 +184,7 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 #card:focus-visible { outline: 4px solid var(--yellow); outline-offset: 6px; }
 
 /* Touch buttons (phones have no keyboard) */
-.tools { display: none; gap: 8px 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+.tools { display: flex; gap: 8px 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
 .tools .btn { font-size: .8rem; padding: 8px 12px; min-height: 44px; box-shadow: 0 4px 0 var(--navy), 0 8px 14px rgba(0,0,0,.35); }
 
 /* Phones, and any touch device (including landscape): show buttons, hide the keyboard hint */
@@ -273,6 +278,27 @@ html[data-theme="day"] .line-label, html[data-theme="calm"] .line-label { backgr
 
 
 
+
+/* The table: click the pile and the cards still in the deck are laid out over the play area (desktop only) */
+.table {
+  position: absolute; inset: 0; z-index: 5; display: flex; flex-direction: column; gap: 14px; padding: 18px 22px; cursor: pointer;
+  background: rgba(27,23,80,.9); border: 3px solid var(--yellow); border-radius: 24px; box-shadow: 0 18px 50px rgba(0,0,0,.55);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); transform-origin: 30% 50%;
+}
+.table[hidden] { display: none; }
+.table.open { animation: table-in .35s cubic-bezier(.2,.8,.2,1); }
+.table.closing { animation: table-out .22s ease-in forwards; }
+@keyframes table-in { from { opacity: 0; transform: scale(.9); } }
+@keyframes table-out { to { opacity: 0; transform: scale(.94); } }
+.table-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; color: var(--yellow); font-weight: 700; font-size: 1.3rem; letter-spacing: .1em; text-transform: uppercase; }
+.table-hint { font-size: .8rem; font-weight: 500; letter-spacing: .04em; text-transform: none; color: var(--cream); opacity: .7; }
+.table-grid { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-content: flex-start; padding: 6px; }
+.table-grid .card { --w: clamp(100px, 10vw, 150px); cursor: pointer; pointer-events: none; box-shadow: 0 6px 14px rgba(0,0,0,.45);   /* a bit smaller than the drawn card, but far from tiny */
+  animation: table-deal .5s cubic-bezier(.2,.8,.2,1) backwards; animation-delay: calc(var(--i) * 18ms + 120ms); }
+/* each card slides in from the deck (or the discard pile) and settles */
+.table.from-right { --from: 45vw; }
+@keyframes table-deal { from { opacity: 0; transform: translate(var(--from, -45vw), 8vh) rotate(-14deg) scale(.6); } }
+@media (max-width: 900px) { .table { display: none !important; } }
 
 /* Respect reduced-motion: no animation, keep static highlights */
 @media (prefers-reduced-motion: reduce) {

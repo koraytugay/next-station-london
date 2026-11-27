@@ -27,7 +27,7 @@
   const NAMES = { joker: 'Joker', switch: 'Railroad Switch' };
   const THEME_KEY = 'ns-london-helper-theme';
   const THEMES = [['dusk', 'Dusk'], ['day', 'Day'], ['night', 'Night'], ['calm', 'Calm']];
-  const { ICON, artFor, ROUNDEL } = window.NSLArt;   // card artwork lives in art.js
+  const { ICON, artFor } = window.NSLArt;   // card artwork lives in art.js
 
   const shuffle = (arr) => {
     const a = arr.slice();
@@ -150,6 +150,7 @@
       save(); render(false); return;
     }
     if (!state.deck[state.drawn]) return;
+    if (!$('table').hidden) closeTable();
     state.drawn += takeSize(state.deck, state.drawn, turns().length + 1);
     if (roundOver()) lockUntil = now + LOCK_ROUND_END_MS;
     save(); render(true);
@@ -251,12 +252,103 @@
     const latest = $('past-grid').querySelector('.latest');
     if (latest) latest.scrollIntoView({ block: 'nearest' });
   }
+  // The table: laid out over the play area. Click the deck (left) for the cards still in it, the discard pile (right) for the past ones. Desktop only.
+  let closingTable = 0;
+  function openTable(mode) {
+    const el = $('table');
+    let html, title;
+    if (mode === 'past') {
+      const items = turns().flatMap((t, i) => t.cards.map(c => ({ c, n: i + 1 })));
+      title = `${items.length} cards drawn, in order`;
+      html = items.map((x, i) => `<div class="card ${x.c.kind}" style="--i:${i}">${face(x.c)}</div>`).join('');
+    } else {
+      const left = state.deck.slice(state.drawn);
+      const rank = (c) => DECK.findIndex(d => d.kind === c.kind && d.shape === c.shape);
+      title = `${left.length} cards left, ${left.filter(c => c.kind === 'underground').length} Underground. Order is hidden`;
+      html = left.slice().sort((a, b) => rank(a) - rank(b)).map((c, i) => `<div class="card ${c.kind}" style="--i:${i}">${face(c)}</div>`).join('');
+    }
+    $('table-title').textContent = title;
+    $('table-grid').innerHTML = html || '<p>Nothing here.</p>';
+    el.classList.toggle('from-right', mode === 'past');
+    clearTimeout(closingTable);
+    el.classList.remove('closing'); el.hidden = false; void el.offsetWidth; el.classList.add('open');
+  }
+  function closeTable() {
+    const el = $('table');
+    if (el.hidden) return;
+    el.classList.remove('open'); el.classList.add('closing');
+    closingTable = setTimeout(() => { el.hidden = true; el.classList.remove('closing'); }, 220);
+  }
   const openPast = () => openCards('past');
   const openRemaining = () => openCards('left');
   function closePast() { closeOverlay($('past')); }
 
+  // --- draw animation (desktop, where the deck and the pile are on screen) ---
+  // The card on the table slowly travels to the discard pile, and the next one is flipped over from the deck.
+  const DISCARD_MS = 950, REVEAL_MS = 900, REVEAL_DELAY_MS = 260;
+  const calm = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+  let fxToken = 0;
+  const centre = (r) => ({ x: r.left + r.width / 2, y: r.top + r.height / 2 });
+  // Look at the screen BEFORE it is redrawn: where the deck's top card, and the cards on the table, are right now.
+  function captureFx() {
+    const deckTop = $('deck').querySelector('.card');
+    if (calm.matches || !deckTop || !deckTop.offsetWidth) return null;
+    const grab = (el) => {
+      const r = el.getBoundingClientRect(), c = centre(r);
+      const node = el.cloneNode(true);
+      node.className = el.className.split(' ').filter(x => !['held', 'peek', 'dealt', 'back'].includes(x)).join(' ');
+      return { node, cx: c.x, cy: c.y, w: el.offsetWidth, h: el.offsetHeight };
+    };
+    const src = [];
+    if (!$('held').hidden) src.push(grab($('held')));
+    if (!$('card').classList.contains('back')) src.push(grab($('card')));
+    const d = deckTop.getBoundingClientRect();
+    return { deck: { ...centre(d), w: deckTop.offsetWidth }, oldPile: $('pile').children.length, src };
+  }
+  function fly(node, w, h, cx, cy) {
+    node.style.cssText = `position:fixed;left:${cx - w / 2}px;top:${cy - h / 2}px;width:${w}px;height:${h}px;margin:0;z-index:50;pointer-events:none;transform-origin:50% 50%;`;
+    document.body.appendChild(node);
+    return node;
+  }
+  function playFx(fx, last) {
+    const token = ++fxToken, pile = $('pile'), card = $('card');
+    const targets = [...pile.children].slice(-fx.src.length || undefined);
+    // 1. the cards on the table go to the pile, slowly
+    if (fx.src.length && pile.children.length - fx.oldPile >= fx.src.length) {
+      fx.src.forEach((s, i) => {
+        const t = targets[i], tc = centre(t.getBoundingClientRect());
+        const rot = parseFloat(t.style.getPropertyValue('--rot')) || 0, k = t.offsetWidth / s.w;
+        t.style.visibility = 'hidden';
+        const el = fly(s.node, s.w, s.h, s.cx, s.cy);
+        el.animate([{ transform: 'none' }, { transform: `translate(${tc.x - s.cx}px, ${tc.y - s.cy}px) rotate(${rot}deg) scale(${k})` }],
+          { duration: DISCARD_MS, delay: i * 120, easing: 'cubic-bezier(.45,0,.25,1)', fill: 'both' }).finished
+          .catch(() => {}).then(() => { el.remove(); t.style.visibility = ''; });
+      });
+    }
+    // 2. the next card is turned over on the deck and slides to the table
+    if (last) {
+      const r = card.getBoundingClientRect(), c = centre(r), w = card.offsetWidth, h = card.offsetHeight;
+      const front = card.cloneNode(true); front.className = card.className.split(' ').filter(x => x !== 'dealt').join(' ');
+      front.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;margin:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;';
+      const back = document.createElement('div'); back.className = 'card small back';
+      back.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;margin:0;border-width:4px;border-radius:18px;transform:rotateY(180deg);backface-visibility:hidden;-webkit-backface-visibility:hidden;';
+      const el = document.createElement('div'); el.append(front, back);
+      fly(el, w, h, c.x, c.y); el.style.transformStyle = 'preserve-3d';
+      const k = fx.deck.w / w, dx = fx.deck.x - c.x, dy = fx.deck.y - c.y;
+      card.style.visibility = 'hidden';
+      el.animate([
+        { transform: `perspective(1400px) translate(${dx}px, ${dy}px) scale(${k}) rotateY(180deg)` },
+        { transform: `perspective(1400px) translate(${dx * .35}px, ${dy * .35 - 50}px) scale(${(1 + k) / 2 + .12}) rotateY(90deg)`, offset: .45 },
+        { transform: 'perspective(1400px) none' }
+      ], { duration: REVEAL_MS, delay: REVEAL_DELAY_MS, easing: 'cubic-bezier(.3,.7,.25,1)', fill: 'backwards' }).finished
+        .catch(() => {}).then(() => { el.remove(); if (token === fxToken) card.style.visibility = ''; });
+    }
+  }
+
   function render(animate) {
     const card = $('card'), pile = $('pile');
+    const fx = animate ? captureFx() : null;
+    if (!fx) card.style.visibility = '';
     const last = state.drawn > 0 ? state.deck[state.drawn - 1] : null;
     const over = roundOver();
     const t = turns(), lastTurn = t[t.length - 1];
@@ -264,6 +356,7 @@
     const heldCard = lastTurn && lastTurn.sw === 'active' && lastTurn.cards.length === 2 ? lastTurn.cards[0] : null;
     const held = $('held'), wasHidden = held.hidden;
     held.hidden = !heldCard;
+    $('stack').classList.toggle('has-held', !!heldCard);
     if (heldCard) {
       held.className = 'card held';
       held.innerHTML = artFor(heldCard) + `<div class="held-cap"><svg aria-hidden="true" viewBox="0 0 100 100">${ICON.switch}</svg>Railroad Switch</div>`;
@@ -278,14 +371,14 @@
     $('stack').classList.toggle('is-final', over && !!last);
     if (!last) {
       card.classList.add('back');
-      card.innerHTML = `<div class="back-top">${ROUNDEL}</div><div class="back-bottom">
+      card.innerHTML = `<div class="back-bottom">
         <div class="back-title">${state.started ? `Round ${state.round}` : 'Start the journey'}</div>
         <div class="back-sub">Tap or press <kbd>Enter</kbd>${state.started ? ' to draw' : ''}</div></div>`;
     } else {
       card.classList.add(last.kind);
       card.innerHTML = face(last) + (over ? '<div class="sash">Last card</div>' : '');
       if (over) card.classList.add('final');
-      if (animate) { void card.offsetWidth; card.classList.add('dealt'); }
+      if (animate && !fx) { void card.offsetWidth; card.classList.add('dealt'); }
     }
 
     // Pile of already-used cards (most recent on top), scattered a little and sinking lower the older they are.
@@ -293,10 +386,20 @@
     const used = t.slice(0, -1).flatMap(x => x.cards);
     pile.innerHTML = used.map((c, n) => {
       const k = state.deck.indexOf(c);
-      const rot = ((k * 37 + 5) % 19) - 9, dx = ((k * 53 + 11) % 41) - 20;
-      return `<div class="card small ${c.kind}" style="z-index:${n + 1};--n:${n};--dx:${dx}px;--rot:${rot}deg">${face(c)}</div>`;
+      // a small integer hash of the deck position, so every card gets its own tilt and offset (and the same ones every render)
+      const h = (m) => { let x = Math.imul(k + 1, 0x9E3779B1) ^ Math.imul(m, 0x85EBCA6B); x = Math.imul(x ^ (x >>> 15), 0x2C1B3C6D); x ^= x >>> 12; x = Math.imul(x, 0x297A2D39); return ((x ^ (x >>> 15)) >>> 0) / 4294967296; };
+      const rot = ((h(1) - .5) * 44).toFixed(1), dx = Math.round((h(2) - .5) * 64), dy = Math.round((h(3) - .5) * 24);
+      return `<div class="card small ${c.kind}" style="z-index:${n + 1};--n:${n};--dx:${dx}px;--dy:${dy}px;--rot:${rot}deg">${face(c)}</div>`;
     }).join('');
 
+
+    // The draw deck: a neat stack of backs, thinner as it runs out.
+    const leftN = state.deck.length - state.drawn;
+    $('deck').hidden = leftN <= 0;
+    $('deck').innerHTML = Array.from({ length: Math.min(leftN, 6) }, (_, n) =>
+      `<div class="card small back" style="z-index:${6 - n};--n:${n}"></div>`).join('');
+
+    if (fx) playFx(fx, last);
 
     const n = undergroundDrawn();
     $('stops').setAttribute('aria-label', `${n} of ${PINK_TO_END} Underground cards drawn`);
@@ -320,6 +423,11 @@
     $('btn-theme').addEventListener('click', (e) => { if (e.detail) e.currentTarget.blur(); cycleTheme(); });
     if (!fsRequest) { const hint = $('hint-fs'); if (hint) hint.hidden = true; }
     $('card').addEventListener('click', draw);
+    // desktop only: the deck and the pile are hidden on small screens
+    $('deck').addEventListener('click', () => openTable('left'));
+    $('deck').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); openTable('left'); } });
+    $('pile').addEventListener('click', () => openTable('past'));
+    $('table').addEventListener('click', closeTable);
     document.addEventListener('keydown', (e) => {
       // Leave browser shortcuts (Cmd/Ctrl+R, Ctrl+P, F5...) and held-down keys alone.
       if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
@@ -340,6 +448,7 @@
         }
         return;
       }
+      if (k === 'escape' && !$('table').hidden) { e.preventDefault(); closeTable(); return; }
       if (k === 'enter' || k === ' ') {
         if (e.target.closest && e.target.closest('button')) return; // let a focused button do its own thing
         e.preventDefault(); draw();
