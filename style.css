@@ -74,10 +74,9 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 }
 #card { z-index: 1; }
 /* Held Railroad Switch: tucked behind the current card, peeking out above it */
-.card.held { position: absolute; left: 0; top: -70px; z-index: 0; cursor: default; pointer-events: none; transform: translateX(46px) rotate(6deg); transform-origin: bottom left; border-color: var(--yellow); animation: glow 1.6s ease-in-out infinite; }
-.card.held.peek { animation: peek .5s ease-out, glow 1.6s ease-in-out .5s infinite; }
+.card.held { position: absolute; left: 0; top: -70px; z-index: 0; cursor: default; pointer-events: none; transform: translateX(46px) rotate(6deg); transform-origin: bottom left; border-color: var(--yellow); box-shadow: 0 0 0 3px var(--navy), 0 0 30px rgba(255,233,74,.8), 0 14px 30px rgba(0,0,0,.5); }
+.card.held.peek { animation: peek .5s ease-out; }
 @keyframes peek { from { transform: translate(0,70px) rotate(0); } }
-@keyframes glow { 0%,100% { box-shadow: 0 0 0 3px var(--navy), 0 0 18px rgba(255,233,74,.55), 0 14px 30px rgba(0,0,0,.5); } 50% { box-shadow: 0 0 0 3px var(--navy), 0 0 38px rgba(255,233,74,.95), 0 14px 30px rgba(0,0,0,.5); } }
 .held-cap {
   position: absolute; top: 10px; left: 50%; transform: translateX(-50%); white-space: nowrap; display: flex; align-items: center; gap: 6px;
   background: var(--yellow); color: var(--navy); border: 3px solid var(--navy); border-radius: 999px;
@@ -123,8 +122,7 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 }
 .stop.on { background: var(--pink); transform: scale(1.12); }
 .stop.on::after { content: ''; position: absolute; left: -9px; right: -9px; top: 50%; height: 7px; margin-top: -3.5px; background: var(--cream); border-radius: 2px; }
-.stop.final { animation: ring .9s ease-in-out infinite; }
-@keyframes ring { 50% { box-shadow: 0 0 0 11px rgba(255,233,74,.9); } }
+.stop.final::before { content: ''; position: absolute; inset: -11px; border-radius: 50%; border: 6px solid rgba(255,233,74,.95); animation: pulse-layer .9s ease-in-out infinite; }
 .line-label { margin-top: 4px; font-size: .75rem; letter-spacing: .2em; text-transform: uppercase; opacity: .85; text-shadow: 0 2px 4px rgba(0,0,0,.6); }
 
 /* Splash */
@@ -220,11 +218,14 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 .past-grid .card { --w: min(28vw, 150px); }
 
 /* Last card of the round: unmissable */
-.card.final { box-shadow: 0 0 0 6px var(--yellow), 0 0 28px 6px rgba(255,233,74,.7), 0 18px 40px rgba(0,0,0,.55); animation: finalglow 1s ease-in-out infinite; }
-.card.final.dealt { animation: deal .55s cubic-bezier(.2,.8,.2,1), finalglow 1s ease-in-out .55s infinite; }
-@keyframes finalglow {
-  50% { box-shadow: 0 0 0 9px var(--yellow), 0 0 60px 20px rgba(255,233,74,.95), 0 18px 40px rgba(0,0,0,.55); }
+.card.final { box-shadow: 0 0 0 6px var(--yellow), 0 0 28px 6px rgba(255,233,74,.7), 0 18px 40px rgba(0,0,0,.55); }
+/* Pulse: a layer behind the card whose opacity animates (cheap), instead of animating box-shadow */
+.stack.is-final::before {
+  content: ''; position: absolute; inset: 0; border-radius: 18px; z-index: 0; pointer-events: none;
+  box-shadow: 0 0 0 9px var(--yellow), 0 0 60px 20px rgba(255,233,74,.95);
+  animation: pulse-layer 1s ease-in-out infinite;
 }
+@keyframes pulse-layer { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
 .sash {
   position: absolute; top: 24px; left: -50px; width: 200px; text-align: center; transform: rotate(-38deg);
   background: var(--yellow); color: var(--navy); border-top: 3px solid var(--navy); border-bottom: 3px solid var(--navy);
@@ -243,3 +244,10 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 .sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 #past-close { margin-top: 22px; }
+
+/* Respect reduced-motion: no animation, keep static highlights */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .stack.is-final::before { opacity: .55; }
+  .stop.final::before { opacity: 1; }
+}

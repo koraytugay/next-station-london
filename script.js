@@ -259,6 +259,7 @@
     $('count').textContent = `Turn ${t.length}`;
 
     card.className = 'card';
+    $('stack').classList.toggle('is-final', over && !!last);
     if (!last) {
       card.classList.add('back');
       card.innerHTML = `<div class="back-top">${ROUNDEL}</div><div class="back-bottom">
