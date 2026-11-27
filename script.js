@@ -130,9 +130,10 @@
 
   const nameOf = (c) => NAMES[c.shape] || c.shape;
   const describe = (c) => c.shape === 'switch' ? 'Railroad Switch' : `${c.kind === 'underground' ? 'Underground' : 'Street'} ${nameOf(c)}`;
-  function face(c) {
+  function face(c, withKind = false) {
     // visible caption is decorative for screen readers; the .sr text carries kind + shape
-    return `${artFor(c)}<div class="cap" aria-hidden="true">${nameOf(c)}</div><span class="sr">${describe(c)}</span>`;
+    const cap = withKind && c.shape !== 'switch' ? `${c.kind === 'underground' ? 'Underground' : 'Street'}<br>${nameOf(c)}` : nameOf(c);
+    return `${artFor(c)}<div class="cap" aria-hidden="true">${cap}</div><span class="sr">${describe(c)}</span>`;
   }
   // One polite announcement per action (cleared first so repeats are still read out).
   function announce(msg) {
@@ -254,7 +255,7 @@
       $('past-sub').textContent = `${left.length} cards left, ${pink} Underground. Order is hidden.`;
     }
     $('past-grid').innerHTML = items.map((x, i) =>
-      `<div class="card ${x.c.kind}${mode === 'past' && i === items.length - 1 ? ' latest' : ''}">${face(x.c)}${x.n ? `<div class="num">${x.n}</div>` : ''}</div>`
+      `<div class="card ${x.c.kind}${mode === 'past' && i === items.length - 1 ? ' latest' : ''}">${face(x.c, true)}${x.n ? `<div class="num">${x.n}</div>` : ''}</div>`
     ).join('') || '<p>Nothing here.</p>';
     pastMode = mode;
     openOverlay($('past'), $('past-close'));
@@ -280,6 +281,7 @@
       if (animate && wasHidden) { void held.offsetWidth; held.classList.add('peek'); }
     }
 
+    $('btn-new').disabled = !state.started;
     $('round').textContent = `Round ${state.round} / ${TOTAL_ROUNDS}`;
     $('count').textContent = `Turn ${t.length}`;
 
@@ -289,7 +291,7 @@
       card.classList.add('back');
       card.innerHTML = `<div class="back-top">${ROUNDEL}</div><div class="back-bottom">
         <div class="back-title">${state.started ? `Round ${state.round}` : 'Start the journey'}</div>
-        <div class="back-sub">Press <kbd>Enter</kbd>${state.started ? ' to draw' : ''}</div></div>`;
+        <div class="back-sub">Tap or press <kbd>Enter</kbd>${state.started ? ' to draw' : ''}</div></div>`;
     } else {
       card.classList.add(last.kind);
       card.innerHTML = face(last) + (over ? '<div class="sash">Last card</div>' : '');

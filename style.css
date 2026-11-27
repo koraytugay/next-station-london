@@ -79,8 +79,8 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 .card, .btn { touch-action: manipulation; }
 .card.dealt { animation: deal .55s cubic-bezier(.2,.8,.2,1); }
 @keyframes deal {
-  from { transform: translateY(-60px) rotateY(100deg) scale(.9); opacity: 0; }
-  to   { transform: none; opacity: 1; }
+  from { transform: translateY(-60px) rotateY(100deg) scale(.9); }
+  to   { transform: none; }
 }
 #card { z-index: 1; }
 /* Held Railroad Switch: tucked behind the current card, peeking out above it */
@@ -148,7 +148,7 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 .overlay-box { text-align: center; max-width: 900px; }
 .overlay h2 { font-size: 1.8rem; letter-spacing: .12em; text-transform: uppercase; color: var(--yellow); margin-bottom: 18px; }
 .past-grid .card { --w: 150px; cursor: default; }
-.past-grid .cap { display: none; }
+.past-grid .cap { font-size: .6rem; padding: 2px 8px; letter-spacing: .04em; white-space: normal; text-align: center; line-height: 1.15; border-radius: 10px; }
 .past-grid { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
 .hint { margin-top: 18px; opacity: .7; }
 .overlay .sub { margin: -8px 0 16px; opacity: .8; }
@@ -176,6 +176,8 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
   font-family: inherit; font-size: 1.05rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; cursor: pointer;
   padding: 10px 22px; border-radius: 999px; border: 3px solid var(--navy); box-shadow: 0 4px 0 var(--navy); transition: transform .1s, box-shadow .1s;
 }
+.btn:disabled { background: #8d89b5; color: #e4e2f3; border-color: #3d3880; box-shadow: 0 4px 0 #3d3880; cursor: not-allowed; }
+.btn:disabled:active { transform: none; }
 .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--navy); }
 .btn.no { background: #fff; color: var(--navy); }
 .btn.yes { background: var(--pink-deep); color: #fff; }   /* white on --pink was only ~4:1, this is ~6:1 */
@@ -269,3 +271,6 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
   .tools { gap: 6px; }
   .tools .btn { font-size: .7rem; padding: 8px 9px; letter-spacing: .02em; }
 }
+/* In the Past/Remaining grid the cards are small: shrink the turn badge and shift the caption clear of it */
+.past-grid .num { width: 24px; height: 24px; top: 4px; left: 4px; font-size: .8rem; border-width: 2px; }
+.past-grid .cap { left: calc(50% + 12px); }
