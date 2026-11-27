@@ -25,6 +25,8 @@
   // Bump when the shape of the saved game changes; saves from any other version are ignored.
   const STATE_VERSION = 4;
   const NAMES = { joker: 'Joker', switch: 'Railroad Switch' };
+  const THEME_KEY = 'ns-london-helper-theme';
+  const THEMES = [['dusk', 'Dusk'], ['day', 'Day'], ['night', 'Night'], ['calm', 'Calm']];
   const { ICON, artFor, ROUNDEL } = window.NSLArt;   // card artwork lives in art.js
 
   const shuffle = (arr) => {
@@ -152,6 +154,19 @@
     if (roundOver()) lockUntil = now + LOCK_ROUND_END_MS;
     save(); render(true);
   }
+
+  // Themes: a single button (or T) cycles through them; the choice is remembered.
+  let themeIdx = 0;
+  function applyTheme(idx, say) {
+    themeIdx = idx;
+    const [id, name] = THEMES[idx];
+    document.documentElement.setAttribute('data-theme', id);
+    $('btn-theme').setAttribute('aria-label', `Change theme. Current: ${name}`);
+    $('btn-theme').title = `Theme: ${name}`;
+    try { localStorage.setItem(THEME_KEY, id); } catch { /* ignore */ }
+    if (say) announce(`Theme: ${name}`);
+  }
+  const cycleTheme = () => applyTheme((themeIdx + 1) % THEMES.length, true);
 
   // Fullscreen: not available everywhere (iPhone Safari has none), may be prefixed, and the promise can reject.
   const fsEl = document.documentElement;
@@ -300,6 +315,9 @@
 
   document.addEventListener('DOMContentLoaded', () => {
     state = restore(load()) || fresh();
+    let savedTheme = null; try { savedTheme = localStorage.getItem(THEME_KEY); } catch { /* ignore */ }
+    applyTheme(Math.max(0, THEMES.findIndex(([id]) => id === savedTheme)), false);
+    $('btn-theme').addEventListener('click', (e) => { if (e.detail) e.currentTarget.blur(); cycleTheme(); });
     if (!fsRequest) { const hint = $('hint-fs'); if (hint) hint.hidden = true; }
     $('card').addEventListener('click', draw);
     document.addEventListener('keydown', (e) => {
@@ -328,6 +346,7 @@
       }
       else if (k === 'p') openPast();
       else if (k === 'r') openRemaining();
+      else if (k === 't') cycleTheme();
       else if (k === 'f') toggleFullscreen();
       else if (k === 'n') newGame();
     });
