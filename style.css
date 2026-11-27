@@ -237,6 +237,7 @@ main { position: relative; flex: 1; display: flex; align-items: center; justify-
   box-shadow: 0 0 0 9px var(--yellow), 0 0 60px 20px rgba(255,233,74,.95);
   animation: pulse-layer 1s ease-in-out infinite;
 }
+.stack.is-final.has-held::before { transform: translateY(var(--drop)); }   /* follow the card when it sits lower for a Railroad Switch */
 @keyframes pulse-layer { 0%, 100% { opacity: 0; } 50% { opacity: 1; } }
 .sash {
   position: absolute; top: 24px; left: -50px; width: 200px; text-align: center; transform: rotate(-38deg);
