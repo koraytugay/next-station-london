@@ -142,8 +142,15 @@
     splash.t = setTimeout(() => { s.hidden = true; }, 1600);
   }
 
+  // Guard against accidental double taps: a short pause after every draw, and a longer one after the card that
+  // ends a round, so a stray second tap cannot reshuffle straight past it.
+  let lockUntil = 0;
+  const LOCK_MS = 350, LOCK_ROUND_END_MS = 900;
   function draw() {
     if (!$('past').hidden) return closePast();
+    const now = performance.now();
+    if (now < lockUntil) return;
+    lockUntil = now + LOCK_MS;
     if (!state.started) {
       state.started = true;
       splash('Round 1<small>Mind the gap</small>');
@@ -158,6 +165,7 @@
     const c = state.deck[state.drawn];
     if (!c) return;
     state.drawn += (c.shape === 'switch' && switchActive(turnNo) && state.drawn + 1 < state.deck.length) ? 2 : 1;
+    if (roundOver()) lockUntil = now + LOCK_ROUND_END_MS;
     save(); render(true);
   }
 
