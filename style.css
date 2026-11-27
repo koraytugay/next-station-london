@@ -14,6 +14,10 @@
   --cream: #fff8e6;
   --font: 'Fredoka', ui-rounded, 'Trebuchet MS', system-ui, sans-serif;
   --vh: 100vh;
+  --peek: 70px;            /* how far the held Railroad Switch sticks out above the card */
+  --pile-step: 16px;       /* each discard sits this much lower than the previous one */
+  --small-w: min(14vw, 150px);
+  --splash-ms: 1600;
 }
 @supports (height: 100dvh) { :root { --vh: 100dvh; } }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -26,7 +30,7 @@ body {
 }
 .bg {
   position: fixed; inset: 0; z-index: -2;
-  background: url('bg.svg?v=27') center / cover no-repeat;
+  background: url('bg.svg?v=28') center / cover no-repeat;
   transform: scale(1.04);
 }
 .bg::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 40%, rgba(15,12,60,.55) 100%); }
@@ -57,7 +61,7 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 .row { display: flex; align-items: center; justify-content: center; gap: 28px; }
 
 /* Cards: portrait, with the symbol rings from the real cards */
-.deal { padding-top: 76px; }
+.deal { padding-top: calc(var(--peek) + 6px); }
 .stack { position: relative; }
 .card {
   --reserve: 420px;   /* vertical space taken by everything that is not the card */
@@ -84,9 +88,9 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 }
 #card { z-index: 1; }
 /* Held Railroad Switch: tucked behind the current card, peeking out above it */
-.card.held { position: absolute; left: 0; top: -70px; z-index: 0; cursor: default; pointer-events: none; transform: translateX(46px) rotate(6deg); transform-origin: bottom left; border-color: var(--yellow); box-shadow: 0 0 0 3px var(--navy), 0 0 30px rgba(255,233,74,.8), 0 14px 30px rgba(0,0,0,.5); }
+.card.held { position: absolute; left: 0; top: calc(var(--peek) * -1); z-index: 0; cursor: default; pointer-events: none; transform: translateX(46px) rotate(6deg); transform-origin: bottom left; border-color: var(--yellow); box-shadow: 0 0 0 3px var(--navy), 0 0 30px rgba(255,233,74,.8), 0 14px 30px rgba(0,0,0,.5); }
 .card.held.peek { animation: peek .5s ease-out; }
-@keyframes peek { from { transform: translate(0,70px) rotate(0); } }
+@keyframes peek { from { transform: translate(0, var(--peek)) rotate(0); } }
 .held-cap {
   position: absolute; top: 10px; left: 50%; transform: translateX(-50%); white-space: nowrap; display: flex; align-items: center; gap: 6px;
   background: var(--yellow); color: var(--navy); border: 3px solid var(--navy); border-radius: 999px;
@@ -94,9 +98,9 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
   box-shadow: 0 3px 8px rgba(0,0,0,.35);
 }
 .held-cap svg { width: clamp(20px, calc(var(--w) / 8), 34px); height: clamp(20px, calc(var(--w) / 8), 34px); border-radius: 6px; display: block; flex: none; }
-.card.small { --w: min(14vw, 150px); cursor: default; pointer-events: none; border-width: 3px; border-radius: 12px; }
-.pile { --w: min(14vw, 150px); position: relative; width: var(--w); height: 0; flex: none; align-self: center; }
-.pile .card { position: absolute; left: 0; top: calc(var(--w) * -0.7 - 40px);  box-shadow: 0 8px 18px rgba(0,0,0,.45); }
+.card.small { --w: var(--small-w); cursor: default; pointer-events: none; border-width: 3px; border-radius: 12px; }
+.pile { --w: var(--small-w); position: relative; width: var(--w); height: 0; flex: none; align-self: center; }
+.pile .card { position: absolute; left: 0; top: calc(var(--w) * -0.7 - 40px); transform: translate(var(--dx), calc(var(--n) * var(--pile-step))) rotate(var(--rot));  box-shadow: 0 8px 18px rgba(0,0,0,.45); }
 .card.small .cap { display: none; }
 @media (max-width: 900px) { .pile { display: none; } }
 .card.back { background: var(--yellow); display: flex; flex-direction: column; color: var(--navy); text-align: center; }
@@ -136,7 +140,7 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 .line-label { margin-top: 4px; font-size: .75rem; letter-spacing: .2em; text-transform: uppercase; opacity: .85; text-shadow: 0 2px 4px rgba(0,0,0,.6); }
 
 /* Splash */
-.splash { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(27,23,80,.72); z-index: 50; animation: fade 1.6s ease forwards; pointer-events: none; }
+.splash { position: fixed; inset: 0; display: grid; place-items: center; background: rgba(27,23,80,.72); z-index: 50; animation: fade calc(var(--splash-ms) * 1ms) ease forwards; pointer-events: none; }
 .splash[hidden] { display: none; }
 #splash-text { font-size: clamp(2.4rem, 9vw, 6rem); font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--yellow); text-align: center; text-shadow: 0 5px 0 var(--navy), 0 10px 30px rgba(0,0,0,.6); }
 #splash-text small { display: block; font-size: .3em; letter-spacing: .2em; color: var(--cream); margin-top: 8px; }
@@ -203,7 +207,8 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 @media (max-width: 760px) and (max-height: 640px) {
   h1 { font-size: 1.3rem; }
   .badges { margin-top: 4px; }
-  .deal { padding-top: 58px; gap: 8px; }
+  :root { --peek: 52px; }
+  .deal { gap: 8px; }
   .last-tag { min-height: 44px; font-size: .9rem; padding: 4px 14px; }
   .card { --reserve: 360px; }
 }
@@ -222,9 +227,9 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
   .tools { grid-column: 2; grid-row: 4; margin-top: 4px; flex-wrap: wrap; }
   .stops { padding: 5px 18px; border-width: 3px; }
   .stop { width: 26px; height: 26px; border-width: 4px; }
-  .deal { padding-top: 40px; gap: 8px; }
+  :root { --peek: 34px; }
+  .deal { gap: 8px; }
   .card { --reserve: 120px; --cap: 60vw; --wmin: 110px; }
-  .card.held { top: -36px; }
   .last-tag { min-height: 40px; font-size: .85rem; padding: 4px 14px; }
 }
 /* Overlays scroll when the cards don't fit */
