@@ -11,7 +11,9 @@
     ...SHAPES.map(s => ({ shape: s, kind: 'street' })),
     { shape: 'switch', kind: 'street' },
   ];
-  const KEY = 'ns-london-helper-v3';
+  const KEY = 'ns-london-helper';
+  // Bump when the shape of the saved game changes; saves from any other version are ignored.
+  const STATE_VERSION = 4;
   const NAMES = { joker: 'Joker', switch: 'Railroad Switch' };
   const N = '#1b1750';
 
@@ -94,7 +96,7 @@
   // Accept a saved game only if it is exactly what we could have saved; rebuild the deck from the canonical cards
   // so nothing from storage ever reaches the page as markup.
   function restore(s) {
-    if (!s || typeof s !== 'object' || !Array.isArray(s.deck) || s.deck.length !== DECK.length) return null;
+    if (!s || typeof s !== 'object' || s.v !== STATE_VERSION || !Array.isArray(s.deck) || s.deck.length !== DECK.length) return null;
     if (!Number.isInteger(s.round) || s.round < 1 || s.round > TOTAL_ROUNDS) return null;
     if (!Number.isInteger(s.drawn) || s.drawn < 0 || s.drawn > DECK.length) return null;
     if (typeof s.started !== 'boolean' || (s.drawn > 0 && !s.started)) return null;
@@ -106,7 +108,7 @@
     }
     return { round: s.round, deck, drawn: s.drawn, started: s.started };
   }
-  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} };
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ ...state, v: STATE_VERSION })); } catch {} };
 
   // A turn is one flip, except a Railroad Switch (turn 3+) which flips the next card too.
   // Switch on turn 1 or 2 is ignored (no extra flip).
