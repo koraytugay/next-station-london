@@ -241,17 +241,20 @@
     state = saved && Array.isArray(saved.deck) && saved.deck.length === DECK.length ? saved : fresh();
     $('card').addEventListener('click', draw);
     document.addEventListener('keydown', (e) => {
+      // Leave browser shortcuts (Cmd/Ctrl+R, Ctrl+P, F5...) and held-down keys alone.
+      if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
       const k = e.key.toLowerCase();
       if (!$('confirm').hidden) {
-        if (k === 'y') confirmNewGame();
-        else if (k === 'n' || k === 'escape') closeConfirm();
-        else if (k === 'arrowleft' || k === 'arrowright' || k === 'tab') { /* let focus move between buttons */ return; }
-        else if (k === 'enter' || k === ' ') return; // activates the focused button (No by default)
-        e.preventDefault();
+        // Only handle our own keys; Tab, Enter on a focused button, F5 etc. keep their default behaviour.
+        if (k === 'y') { e.preventDefault(); confirmNewGame(); }
+        else if (k === 'n' || k === 'escape') { e.preventDefault(); closeConfirm(); }
         return;
       }
       if (!$('past').hidden) { closePast(); return; }
-      if (k === 'enter' || k === ' ') { e.preventDefault(); draw(); }
+      if (k === 'enter' || k === ' ') {
+        if (e.target.closest && e.target.closest('button')) return; // let a focused button do its own thing
+        e.preventDefault(); draw();
+      }
       else if (k === 'p') openPast();
       else if (k === 'r') openRemaining();
       else if (k === 'f') {
@@ -260,9 +263,11 @@
       } else if (k === 'n') newGame();
     });
     $('past').addEventListener('click', closePast);
-    $('btn-past').addEventListener('click', openPast);
-    $('btn-remaining').addEventListener('click', openRemaining);
-    $('btn-new').addEventListener('click', newGame);
+    // After a mouse/touch click, drop focus so Enter/Space draw again instead of re-pressing the button.
+    const tool = (fn) => (e) => { if (e.detail) e.currentTarget.blur(); fn(); };
+    $('btn-past').addEventListener('click', tool(openPast));
+    $('btn-remaining').addEventListener('click', tool(openRemaining));
+    $('btn-new').addEventListener('click', tool(newGame));
     $('confirm-yes').addEventListener('click', confirmNewGame);
     $('confirm-no').addEventListener('click', closeConfirm);
     $('confirm').addEventListener('click', (e) => { if (e.target === $('confirm')) closeConfirm(); });
