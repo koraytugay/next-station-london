@@ -17,6 +17,7 @@
   --pile-step: 12px;       /* each discard sits this much lower than the previous one */
   --small-w: min(14vw, 150px);
   --splash-ms: 1600;
+  --bg-opacity: .5;        /* how strongly the background shows; the rest fades into the navy page colour */
 }
 @supports (height: 100dvh) { :root { --vh: 100dvh; } }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
@@ -28,8 +29,8 @@ body {
   overscroll-behavior: none;
 }
 .bg {
-  position: fixed; inset: 0; z-index: -2;
-  background: url('bg.svg?v=41') center / cover no-repeat;
+  position: fixed; inset: 0; z-index: -2; opacity: var(--bg-opacity);
+  background: url('bg.svg?v=42') center / cover no-repeat;
 }
 .bg::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 40%, rgba(15,12,60,.55) 100%); }
 
@@ -253,9 +254,9 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 
 
 /* ---------- Themes: one button (or the T key) cycles them; dusk is the default ---------- */
-html[data-theme="day"]   .bg { background-image: url('bg-day.svg?v=41'); }
-html[data-theme="night"] .bg { background-image: url('bg-night.svg?v=41'); }
-html[data-theme="calm"]  .bg { background-image: url('bg-calm.svg?v=41'); }
+html[data-theme="day"]   .bg { background-image: url('bg-day.svg?v=42'); }
+html[data-theme="night"] .bg { background-image: url('bg-night.svg?v=42'); }
+html[data-theme="calm"]  .bg { background-image: url('bg-calm.svg?v=42'); }
 /* the day backgrounds are light: lighter vignette, and the small captions get a navy pill so they stay readable */
 html[data-theme="day"] .bg::after, html[data-theme="calm"] .bg::after { background: radial-gradient(ellipse at center, transparent 60%, rgba(27,23,80,.22) 100%); }
 html[data-theme="day"] .line-label, html[data-theme="calm"] .line-label { background: var(--navy); opacity: 1; text-shadow: none; }   /* colours only: no theme may change a size */
@@ -270,18 +271,8 @@ html[data-theme="day"] .line-label, html[data-theme="calm"] .line-label { backgr
 .theme-btn:active { transform: scale(.92); }
 .theme-btn:focus-visible { outline: 3px solid var(--yellow); outline-offset: 3px; }
 
-/* A soft panel behind the cards so they stand out from any background. It adds no layout: it is drawn behind
-   .deal and sized from the same variables, leaving the held Railroad Switch to pop out above it. */
-.deal { position: relative; }
-.deal::before {
-  content: ''; position: absolute; z-index: -1; pointer-events: none;
-  left: -36px; right: -36px; top: calc(var(--peek) - 12px); bottom: calc(var(--tail) - 18px);   /* equal both sides: the cards sit in the middle of it */
-  border-radius: 28px; background: rgba(27,23,80,.58); border: 3px solid rgba(255,248,230,.55);
-  box-shadow: 0 12px 40px rgba(0,0,0,.35); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
-}
 
 
-@media (max-width: 760px) { .deal::before { left: -22px; right: -22px; } }   /* still inside the screen on the narrowest phones */
 
 /* Respect reduced-motion: no animation, keep static highlights */
 @media (prefers-reduced-motion: reduce) {
