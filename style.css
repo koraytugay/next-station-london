@@ -175,12 +175,8 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 }
 
 /* Touch buttons (phones have no keyboard) */
-.tools { display: none; gap: 8px; justify-content: center; margin-top: 8px; }
-.tool {
-  font-family: inherit; font-weight: 600; font-size: .85rem; letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
-  background: rgba(27,23,80,.85); color: var(--cream); border: 2px solid var(--yellow); border-radius: 999px; padding: 7px 14px;
-}
-.tool:active { background: var(--yellow); color: var(--navy); }
+.tools { display: none; gap: 10px; justify-content: center; margin-top: 10px; }
+.tools .btn { font-size: .85rem; padding: 8px 15px; box-shadow: 0 4px 0 var(--navy), 0 8px 14px rgba(0,0,0,.35); }
 @media (max-width: 760px) {
   .tools { display: flex; }
   .card { --reserve: 440px; }
