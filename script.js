@@ -282,12 +282,6 @@
       return `<div class="card small ${c.kind}" style="z-index:${n + 1};--n:${n};--dx:${dx}px;--rot:${rot}deg">${face(c)}</div>`;
     }).join('');
 
-    const lines = [];
-    if (lastTurn && lastTurn.sw === 'active') lines.push('Railroad Switch: build from any station on your line');
-    if (lastTurn && lastTurn.sw === 'ignored') lines.push('Railroad Switch ignored (first two turns)');
-    const tag = $('last-tag');
-    tag.classList.toggle('off', !lines.length);
-    tag.innerHTML = lines.join('<br>');
 
     const n = undergroundDrawn();
     $('stops').setAttribute('aria-label', `${n} of ${PINK_TO_END} Underground cards drawn`);

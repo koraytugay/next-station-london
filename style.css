@@ -13,6 +13,7 @@
   --font: 'Fredoka', ui-rounded, 'Trebuchet MS', system-ui, sans-serif;
   --vh: 100vh;
   --peek: 70px;            /* how far the held Railroad Switch sticks out above the card */
+  --tail: 68px;            /* empty space under the card, keeps it centred between the badges and the counter */
   --pile-step: 16px;       /* each discard sits this much lower than the previous one */
   --small-w: min(14vw, 150px);
   --splash-ms: 1600;
@@ -28,7 +29,7 @@ body {
 }
 .bg {
   position: fixed; inset: 0; z-index: -2;
-  background: url('bg.svg?v=38') center / cover no-repeat;
+  background: url('bg.svg?v=39') center / cover no-repeat;
   transform: scale(1.04);
 }
 .bg::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 40%, rgba(15,12,60,.55) 100%); }
@@ -61,7 +62,7 @@ h1 span { color: var(--yellow); }
 }
 
 main { flex: 1; display: flex; align-items: center; justify-content: center; width: 100%; min-height: 0; }
-.deal { display: flex; flex-direction: column; align-items: center; gap: 14px; perspective: 1400px; padding-top: calc(var(--peek) + 6px); }
+.deal { display: flex; flex-direction: column; align-items: center; gap: 14px; perspective: 1400px; padding-top: calc(var(--peek) + 6px); padding-bottom: var(--tail); }
 .row { display: flex; align-items: center; justify-content: center; gap: 28px; }
 
 /* Cards: portrait, with the symbol rings from the real cards */
@@ -110,13 +111,6 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 .back-sub kbd { background: #fff; border: 3px solid var(--navy); border-radius: 8px; padding: 0 10px; font-family: inherit; font-weight: 700; box-shadow: 0 3px 0 var(--navy); }
 .card[hidden] { display: none; }
 
-.last-tag {
-  min-height: 54px; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.25;
-  background: var(--yellow); color: var(--navy); border: 3px solid var(--navy); border-radius: 12px;
-  padding: 6px 22px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; font-size: 1rem;
-  box-shadow: 0 6px 14px rgba(0,0,0,.45); max-width: min(92vw, 640px);
-}
-.last-tag.off { visibility: hidden; }
 
 /* Underground line progress, like the bar in Harmonies */
 .line { width: min(92vw, 620px); text-align: center; margin-top: 4px; }
@@ -208,9 +202,8 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 @media (max-width: 760px) and (max-height: 640px) {
   h1 { font-size: 1.3rem; }
   .badges { margin-top: 4px; }
-  :root { --peek: 52px; }
+  :root { --peek: 52px; --tail: 52px; }
   .deal { gap: 8px; }
-  .last-tag { min-height: 44px; font-size: .9rem; padding: 4px 14px; }
   .card { --reserve: 360px; }
 }
 /* Short screens, mostly landscape phones: card on the left, status and buttons on the right */
@@ -228,10 +221,9 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
   .tools { display: flex; grid-column: 2; grid-row: 4; margin-top: 4px; }   /* keyboard hint is hidden here, so mouse users get the buttons too */
   .stops { padding: 5px 18px; border-width: 3px; }
   .stop { width: 26px; height: 26px; border-width: 4px; }
-  :root { --peek: 34px; }
+  :root { --peek: 34px; --tail: 48px; }
   .deal { gap: 8px; }
   .card { --reserve: 120px; --cap: 60vw; --wmin: 110px; }
-  .last-tag { min-height: 40px; font-size: .85rem; padding: 4px 14px; }
 }
 /* Last card of the round: unmissable */
 .card.final { box-shadow: 0 0 0 6px var(--yellow), 0 0 28px 6px rgba(255,233,74,.7), 0 18px 40px rgba(0,0,0,.55); }
