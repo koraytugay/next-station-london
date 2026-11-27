@@ -8,7 +8,9 @@
   --street-deep: #2a7fb8;
   --cream: #fff8e6;
   --font: 'Fredoka', ui-rounded, 'Trebuchet MS', system-ui, sans-serif;
+  --vh: 100vh;
 }
+@supports (height: 100dvh) { :root { --vh: 100dvh; } }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; }
 @supports (height: 100dvh) { body { height: 100dvh; } }
@@ -49,8 +51,10 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 .deal { padding-top: 76px; }
 .stack { position: relative; }
 .card {
-  --reserve: 420px;
-  --w: clamp(210px, min(70vw, 340px, calc((100vh - var(--reserve)) / 1.4)), 340px);
+  --reserve: 420px;   /* vertical space taken by everything that is not the card */
+  --cap: 70vw;
+  --wmin: 140px;
+  --w: clamp(var(--wmin), min(var(--cap), 340px, calc((var(--vh) - var(--reserve)) / 1.4)), 340px);
   width: var(--w); aspect-ratio: 5 / 7;
   border-radius: 18px; border: 4px solid #fff; position: relative; cursor: pointer; overflow: hidden;
   box-shadow: 0 18px 40px rgba(0,0,0,.55);
@@ -75,12 +79,12 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 @keyframes peek { from { transform: translate(0,70px) rotate(0); } }
 @keyframes glow { 0%,100% { box-shadow: 0 0 0 3px var(--navy), 0 0 18px rgba(255,233,74,.55), 0 14px 30px rgba(0,0,0,.5); } 50% { box-shadow: 0 0 0 3px var(--navy), 0 0 38px rgba(255,233,74,.95), 0 14px 30px rgba(0,0,0,.5); } }
 .held-cap {
-  position: absolute; top: 10px; left: 50%; transform: translateX(-50%); white-space: nowrap; display: flex; align-items: center; gap: 10px;
+  position: absolute; top: 10px; left: 50%; transform: translateX(-50%); white-space: nowrap; display: flex; align-items: center; gap: 6px;
   background: var(--yellow); color: var(--navy); border: 3px solid var(--navy); border-radius: 999px;
-  padding: 3px 18px 3px 5px; font-weight: 700; font-size: 1.1rem; letter-spacing: .06em; text-transform: uppercase;
+  padding: 3px 14px 3px 5px; font-weight: 700; font-size: clamp(.62rem, calc(var(--w) / 15), 1.1rem); letter-spacing: .04em; text-transform: uppercase;
   box-shadow: 0 3px 8px rgba(0,0,0,.35);
 }
-.held-cap svg { width: 34px; height: 34px; border-radius: 6px; display: block; }
+.held-cap svg { width: clamp(20px, calc(var(--w) / 8), 34px); height: clamp(20px, calc(var(--w) / 8), 34px); border-radius: 6px; display: block; flex: none; }
 .card.small { --w: min(14vw, 150px); cursor: default; pointer-events: none; border-width: 3px; border-radius: 12px; }
 .pile { --w: min(14vw, 150px); position: relative; width: var(--w); height: 0; flex: none; align-self: center; }
 .pile .card { position: absolute; left: 0; top: calc(var(--w) * -0.7 - 40px);  box-shadow: 0 8px 18px rgba(0,0,0,.45); }
@@ -147,7 +151,7 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 }
 .footer-hint strong { color: var(--yellow); font-weight: 600; }
 .disclaimer { position: fixed; bottom: 8px; left: 10px; font-size: .62rem; opacity: .55; max-width: 220px; line-height: 1.2; }
-@media (max-width: 760px) { .footer-hint, .disclaimer { display: none; } .stage { padding-bottom: 14px; } }
+@media (max-width: 760px) { .disclaimer { display: none; } .stage { padding-bottom: calc(14px + env(safe-area-inset-bottom)); } }
 .card[hidden] { display: none; }
 
 /* Confirm dialog */
@@ -169,24 +173,46 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 .btn.yes { background: var(--pink); color: #fff; }
 .btn:focus-visible { outline: 4px solid var(--navy); outline-offset: 3px; }
 
-@supports (height: 100dvh) {
-  .card { --w: clamp(210px, min(70vw, 340px, calc((100dvh - var(--reserve)) / 1.4)), 340px); }
-}
-
 /* Touch buttons (phones have no keyboard) */
 .tools { display: none; gap: 10px; justify-content: center; margin-top: 10px; }
 .tools .btn { font-size: .8rem; padding: 8px 12px; box-shadow: 0 4px 0 var(--navy), 0 8px 14px rgba(0,0,0,.35); }
-@media (max-width: 760px) {
+.stage { overflow-y: auto; }
+
+/* Phones, and any touch device (including landscape): show buttons, hide the keyboard hint */
+@media (max-width: 760px), (hover: none) and (pointer: coarse) {
   .tools { display: flex; }
-  .card { --reserve: 400px; }
-  .card { --w: clamp(210px, min(80vw, 340px, calc((100vh - var(--reserve)) / 1.4)), 340px); }
-  .stage { padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
-  .card.held { transform: translateX(20px) rotate(4deg); }
+  .footer-hint { display: none; }
 }
 @media (max-width: 760px) {
-  @supports (height: 100dvh) {
-    .card { --w: clamp(210px, min(80vw, 340px, calc((100dvh - var(--reserve)) / 1.4)), 340px); }
+  .card { --reserve: 400px; --cap: 80vw; }
+  .card.held { transform: translateX(20px) rotate(4deg); }
+}
+/* Small portrait phones (iPhone SE and similar) */
+@media (max-width: 760px) and (max-height: 640px) {
+  h1 { font-size: 1.3rem; }
+  .badges { margin-top: 4px; }
+  .deal { padding-top: 58px; gap: 8px; }
+  .last-tag { min-height: 44px; font-size: .9rem; padding: 4px 14px; }
+  .card { --reserve: 360px; }
+}
+/* Short screens, mostly landscape phones: card on the left, status and buttons on the right */
+@media (max-height: 520px) {
+  h1, .line-label, .disclaimer, .footer-hint { display: none; }
+  .stage {
+    display: grid; grid-template-columns: 1fr minmax(230px, 42%); grid-template-rows: auto 1fr auto auto;
+    align-items: center; justify-items: center; column-gap: 16px; row-gap: 6px; padding: 8px 12px;
   }
+  header { grid-column: 2; grid-row: 1; }
+  .badges { margin-top: 0; }
+  main { grid-column: 1; grid-row: 1 / 5; height: 100%; }
+  .line { grid-column: 2; grid-row: 3; width: 100%; margin-top: 0; }
+  .tools { grid-column: 2; grid-row: 4; margin-top: 4px; flex-wrap: wrap; }
+  .stops { padding: 5px 18px; border-width: 3px; }
+  .stop { width: 26px; height: 26px; border-width: 4px; }
+  .deal { padding-top: 40px; gap: 8px; }
+  .card { --reserve: 120px; --cap: 60vw; --wmin: 110px; }
+  .card.held { top: -36px; }
+  .last-tag { min-height: 40px; font-size: .85rem; padding: 4px 14px; }
 }
 /* Overlays scroll when the cards don't fit */
 .overlay { display: flex; overflow-y: auto; }
