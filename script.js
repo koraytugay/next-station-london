@@ -358,7 +358,12 @@
   const SHUFFLE_MS = GATHER_MS + CUTS * 2 * STEP_MS + LAY_MS;
   function captureShuffle() {
     const deckEls = [...$('deck').querySelectorAll('.card')];
-    if (calm.matches || !deckEls.length || !deckEls[0].offsetWidth) return null;
+    // The draw pile is hidden once every card has been drawn; unhide it briefly just to measure a card back.
+    const deckBox = $('deck'), wasHidden = deckBox.hidden;
+    deckBox.hidden = false;
+    const smallW = deckBox.offsetWidth;
+    deckBox.hidden = wasHidden;
+    if (calm.matches || !smallW) return null;
     const grab = (el, face) => {
       const c = centre(el.getBoundingClientRect());
       const node = el.cloneNode(true);
@@ -369,7 +374,7 @@
     if (!$('held').hidden) items.push(grab($('held'), true));
     if (!$('card').classList.contains('back')) items.push(grab($('card'), true));
     deckEls.forEach(el => items.push(grab(el, false)));
-    return { items, smallW: deckEls[0].offsetWidth };
+    return { items, smallW };
   }
   function playShuffle(sh) {
     const deck = $('deck'), card = $('card'), token = ++fxToken;
