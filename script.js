@@ -91,6 +91,21 @@
   let state;
   const fresh = () => ({ round: 1, deck: shuffle(DECK), drawn: 0, started: false });
   const load = () => { try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; } };
+  // Accept a saved game only if it is exactly what we could have saved; rebuild the deck from the canonical cards
+  // so nothing from storage ever reaches the page as markup.
+  function restore(s) {
+    if (!s || typeof s !== 'object' || !Array.isArray(s.deck) || s.deck.length !== DECK.length) return null;
+    if (!Number.isInteger(s.round) || s.round < 1 || s.round > TOTAL_ROUNDS) return null;
+    if (!Number.isInteger(s.drawn) || s.drawn < 0 || s.drawn > DECK.length) return null;
+    if (typeof s.started !== 'boolean' || (s.drawn > 0 && !s.started)) return null;
+    const deck = [];
+    for (const c of s.deck) {
+      const canon = c && DECK.find(d => d.kind === c.kind && d.shape === c.shape);
+      if (!canon || deck.includes(canon)) return null;
+      deck.push(canon);
+    }
+    return { round: s.round, deck, drawn: s.drawn, started: s.started };
+  }
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch {} };
 
   // A turn is one flip, except a Railroad Switch (turn 3+) which flips the next card too.
@@ -237,8 +252,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    const saved = load();
-    state = saved && Array.isArray(saved.deck) && saved.deck.length === DECK.length ? saved : fresh();
+    state = restore(load()) || fresh();
     $('card').addEventListener('click', draw);
     document.addEventListener('keydown', (e) => {
       // Leave browser shortcuts (Cmd/Ctrl+R, Ctrl+P, F5...) and held-down keys alone.
@@ -271,7 +285,8 @@
     $('confirm-yes').addEventListener('click', confirmNewGame);
     $('confirm-no').addEventListener('click', closeConfirm);
     $('confirm').addEventListener('click', (e) => { if (e.target === $('confirm')) closeConfirm(); });
-    render(false);
-    requestAnimationFrame(() => document.body.classList.remove('loading'));
+    try { render(false); }
+    catch (err) { console.error(err); state = fresh(); save(); render(false); }
+    finally { requestAnimationFrame(() => document.body.classList.remove('loading')); }
   });
 })();
