@@ -148,7 +148,7 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
   background: rgba(27,23,80,.8); padding: 5px 16px; border-radius: 999px; border: 1px solid rgba(255,233,74,.5);
 }
 .footer-hint strong { color: var(--yellow); font-weight: 600; }
-.disclaimer { position: fixed; bottom: 8px; left: 10px; font-size: .62rem; opacity: .55; max-width: 220px; line-height: 1.2; }
+.disclaimer { position: fixed; bottom: 8px; left: 10px; font-size: .72rem; max-width: 260px; line-height: 1.25; background: rgba(27,23,80,.78); padding: 4px 10px; border-radius: 10px; }
 @media (max-width: 760px) { .disclaimer { display: none; } .stage { padding-bottom: calc(14px + env(safe-area-inset-bottom)); } }
 .card[hidden] { display: none; }
 
@@ -168,12 +168,14 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 }
 .btn:active { transform: translateY(3px); box-shadow: 0 1px 0 var(--navy); }
 .btn.no { background: #fff; color: var(--navy); }
-.btn.yes { background: var(--pink); color: #fff; }
-.btn:focus-visible { outline: 4px solid var(--navy); outline-offset: 3px; }
+.btn.yes { background: var(--pink-deep); color: #fff; }   /* white on --pink was only ~4:1, this is ~6:1 */
+.btn:focus-visible { outline: 3px solid var(--yellow); outline-offset: 3px; }
+.dialog .btn:focus-visible { outline-color: var(--navy); }
+#card:focus-visible { outline: 4px solid var(--yellow); outline-offset: 6px; }
 
 /* Touch buttons (phones have no keyboard) */
-.tools { display: none; gap: 10px; justify-content: center; margin-top: 10px; }
-.tools .btn { font-size: .8rem; padding: 8px 12px; box-shadow: 0 4px 0 var(--navy), 0 8px 14px rgba(0,0,0,.35); }
+.tools { display: none; gap: 8px 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+.tools .btn { font-size: .8rem; padding: 8px 12px; min-height: 44px; box-shadow: 0 4px 0 var(--navy), 0 8px 14px rgba(0,0,0,.35); }
 .stage { overflow-y: auto; }
 
 /* Phones, and any touch device (including landscape): show buttons, hide the keyboard hint */
@@ -250,4 +252,9 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
   *, *::before, *::after { animation: none !important; transition: none !important; }
   .stack.is-final::before { opacity: .55; }
   .stop.final::before { opacity: 1; }
+}
+/* Very narrow phones: keep the three buttons on one row */
+@media (max-width: 360px) {
+  .tools { gap: 6px; }
+  .tools .btn { font-size: .7rem; padding: 8px 9px; letter-spacing: .02em; }
 }
