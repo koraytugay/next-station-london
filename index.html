@@ -14,9 +14,9 @@
   <link rel="manifest" href="manifest.webmanifest">
   <title>Next Station London Helper</title>
   <link rel="preload" href="fredoka-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <noscript><style>.stage, .footer-hint, .disclaimer { display: none !important; } #fatal { display: flex !important; }</style></noscript>
+  <noscript><style>.stage, .footer-hint { display: none !important; } #fatal { display: flex !important; }</style></noscript>
   <script>try { var t = localStorage.getItem("ns-london-helper-theme"); if (t) document.documentElement.setAttribute("data-theme", t); } catch (e) {}</script>
-  <link rel="stylesheet" href="style.css?v=61">
+  <link rel="stylesheet" href="style.css?v=63">
 </head>
 <body class="loading">
   <div class="bg" aria-hidden="true"></div>
@@ -52,11 +52,10 @@
 
     <section class="line" aria-label="Underground cards drawn this round">
       <div id="stops" class="stops" role="img" aria-label="0 of 5 Underground cards drawn"></div>
-      <div class="line-label">Underground cards</div>
     </section>
     <div class="tools">
-      <button id="btn-past" class="btn no" type="button">Past cards</button>
       <button id="btn-remaining" class="btn no" type="button">Remaining</button>
+      <button id="btn-past" class="btn no" type="button">Past cards</button>
       <button id="btn-new" class="btn yes" type="button">New game</button>
     </div>
   </div>
@@ -85,10 +84,9 @@
     </div>
   </div>
 
-  <div class="footer-hint"><strong>Enter</strong> draw · <strong>P</strong> past cards · <strong>R</strong> remaining · <strong>T</strong> theme · <span id="hint-fs"><strong>F</strong> full screen · </span><strong>N</strong> new game</div>
-  <div class="disclaimer">Unofficial fan-made tool. Next Station London™ is a trademark of Blue Orange Edition.</div>
+  <div class="footer-hint"><strong>Enter</strong> draw · <strong>R</strong> remaining · <strong>P</strong> past cards · <strong>T</strong> theme · <span id="hint-fs"><strong>F</strong> full screen · </span><strong>N</strong> new game</div>
 
   <script src="art.js?v=44"></script>
-  <script src="script.js?v=55"></script>
+  <script src="script.js?v=56"></script>
 </body>
 </html>

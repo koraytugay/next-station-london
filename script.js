@@ -7,7 +7,7 @@
     const msg = document.getElementById('fatal-msg');
     if (msg) msg.textContent = 'Part of the page did not load. Check your connection and reload.';
     const box = document.getElementById('fatal'); if (box) box.hidden = false;
-    document.querySelectorAll('.stage, .footer-hint, .disclaimer').forEach((el) => { el.hidden = true; });
+    document.querySelectorAll('.stage, .footer-hint').forEach((el) => { el.hidden = true; });
     return;
   }
   const TOTAL_ROUNDS = 4;
