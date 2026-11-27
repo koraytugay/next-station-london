@@ -246,6 +246,9 @@
       } else if (k === 'n') newGame();
     });
     $('past').addEventListener('click', closePast);
+    $('btn-past').addEventListener('click', openPast);
+    $('btn-undo').addEventListener('click', undo);
+    $('btn-new').addEventListener('click', newGame);
     $('confirm-yes').addEventListener('click', confirmNewGame);
     $('confirm-no').addEventListener('click', closeConfirm);
     $('confirm').addEventListener('click', (e) => { if (e.target === $('confirm')) closeConfirm(); });

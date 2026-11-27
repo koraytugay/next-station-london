@@ -11,6 +11,7 @@
 }
 * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 html, body { height: 100%; }
+@supports (height: 100dvh) { body { height: 100dvh; } }
 body {
   font-family: var(--font); color: var(--cream); background: var(--navy);
   overflow: hidden; user-select: none;
@@ -48,7 +49,8 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 .deal { padding-top: 76px; }
 .stack { position: relative; }
 .card {
-  --w: clamp(210px, min(70vw, 340px, calc((100vh - 420px) / 1.4)), 340px);
+  --reserve: 420px;
+  --w: clamp(210px, min(70vw, 340px, calc((100vh - var(--reserve)) / 1.4)), 340px);
   width: var(--w); aspect-ratio: 5 / 7;
   border-radius: 18px; border: 4px solid #fff; position: relative; cursor: pointer; overflow: hidden;
   box-shadow: 0 18px 40px rgba(0,0,0,.55);
@@ -131,7 +133,7 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 @keyframes fade { 0% { opacity: 0; } 15% { opacity: 1; } 75% { opacity: 1; } 100% { opacity: 0; } }
 
 /* Past cards overlay */
-.overlay { position: fixed; inset: 0; background: rgba(15,12,60,.88); z-index: 60; display: grid; place-items: center; padding: 20px; }
+.overlay { position: fixed; inset: 0; background: rgba(15,12,60,.97); z-index: 60; display: grid; place-items: center; padding: 20px; }
 .overlay[hidden] { display: none; }
 .overlay-box { text-align: center; max-width: 900px; }
 .overlay h2 { font-size: 1.8rem; letter-spacing: .12em; text-transform: uppercase; color: var(--yellow); margin-bottom: 18px; }
@@ -167,3 +169,31 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 .btn.no { background: #fff; color: var(--navy); }
 .btn.yes { background: var(--pink); color: #fff; }
 .btn:focus-visible { outline: 4px solid var(--navy); outline-offset: 3px; }
+
+@supports (height: 100dvh) {
+  .card { --w: clamp(210px, min(70vw, 340px, calc((100dvh - var(--reserve)) / 1.4)), 340px); }
+}
+
+/* Touch buttons (phones have no keyboard) */
+.tools { display: none; gap: 8px; justify-content: center; margin-top: 8px; }
+.tool {
+  font-family: inherit; font-weight: 600; font-size: .85rem; letter-spacing: .06em; text-transform: uppercase; cursor: pointer;
+  background: rgba(27,23,80,.85); color: var(--cream); border: 2px solid var(--yellow); border-radius: 999px; padding: 7px 14px;
+}
+.tool:active { background: var(--yellow); color: var(--navy); }
+@media (max-width: 760px) {
+  .tools { display: flex; }
+  .card { --reserve: 440px; }
+  .card { --w: clamp(210px, min(80vw, 340px, calc((100vh - var(--reserve)) / 1.4)), 340px); }
+  .stage { padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
+  .card.held { transform: translateX(20px) rotate(4deg); }
+}
+@media (max-width: 760px) {
+  @supports (height: 100dvh) {
+    .card { --w: clamp(210px, min(80vw, 340px, calc((100dvh - var(--reserve)) / 1.4)), 340px); }
+  }
+}
+/* Overlays scroll when the cards don't fit */
+.overlay { display: flex; overflow-y: auto; }
+.overlay > * { margin: auto; }
+.past-grid .card { --w: min(28vw, 150px); }
