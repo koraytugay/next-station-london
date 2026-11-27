@@ -323,7 +323,11 @@
         const rot = parseFloat(t.style.getPropertyValue('--rot')) || 0, k = t.offsetWidth / s.w;
         t.style.visibility = 'hidden';
         const el = fly(s.node, s.w, s.h, s.cx, s.cy);
-        el.animate([{ transform: 'none' }, { transform: `translate(${tc.x - s.cx}px, ${tc.y - s.cy}px) rotate(${rot}deg) scale(${k})` }],
+        // Morph the clone's border, corners and shadow into the pile card's (divided by k, since the whole clone is scaled), so nothing snaps at the swap.
+        const cs = getComputedStyle(el), pc = getComputedStyle(t), bw = parseFloat(pc.borderTopWidth) / k, br = parseFloat(pc.borderTopLeftRadius) / k;
+        el.animate([
+          { transform: 'none', borderWidth: cs.borderTopWidth, borderRadius: cs.borderTopLeftRadius, boxShadow: cs.boxShadow },
+          { transform: `translate(${tc.x - s.cx}px, ${tc.y - s.cy}px) rotate(${rot}deg) scale(${k})`, borderWidth: `${bw}px`, borderRadius: `${br}px`, boxShadow: `0 ${8 / k}px ${18 / k}px rgba(0,0,0,.45)` }],
           { duration: DISCARD_MS, delay: i * 120, easing: 'cubic-bezier(.45,0,.25,1)', fill: 'both' }).finished
           .catch(() => {}).then(() => { el.remove(); t.style.visibility = ''; });
       });
