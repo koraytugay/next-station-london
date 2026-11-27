@@ -17,17 +17,30 @@ self.addEventListener('install', (event) => {
 
 self.addEventListener('activate', (event) => { event.waitUntil(self.clients.claim()); });
 
+// If the network has not answered after this long and we already hold a copy, use the copy (the network request keeps
+// going and refreshes the cache for next time). On a flaky connection this beats waiting 30 seconds for a page we have.
+const NETWORK_TIMEOUT_MS = 2000;
+
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET' || new URL(req.url).origin !== location.origin) return;
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
-    try {
-      const res = await fetch(req, { cache: 'no-cache' });
+    const network = fetch(req, { cache: 'no-cache' }).then((res) => {
       if (res.ok) cache.put(req, res.clone());
       return res;
+    });
+    // Only an exact copy may beat a slow network: a different version of the same file could mismatch the page.
+    const exact = await cache.match(req);
+    try {
+      if (!exact) return await network;
+      return await Promise.race([
+        network,
+        new Promise((resolve) => setTimeout(() => resolve(exact), NETWORK_TIMEOUT_MS)),
+      ]);
     } catch (err) {
-      return (await cache.match(req)) || (await cache.match(req, { ignoreSearch: true })) ||
+      // network failed outright (offline)
+      return exact || (await cache.match(req, { ignoreSearch: true })) ||
         (req.mode === 'navigate' ? await cache.match('index.html') : undefined) || Response.error();
     }
   })());
