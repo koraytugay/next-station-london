@@ -28,7 +28,7 @@ body {
 }
 .bg {
   position: fixed; inset: 0; z-index: -2;
-  background: url('bg.svg?v=36') center / cover no-repeat;
+  background: url('bg.svg?v=37') center / cover no-repeat;
   transform: scale(1.04);
 }
 .bg::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 40%, rgba(15,12,60,.55) 100%); }
@@ -233,7 +233,7 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
   .badges { margin-top: 0; }
   main { grid-column: 1; grid-row: 1 / 5; height: 100%; }
   .line { grid-column: 2; grid-row: 3; width: 100%; margin-top: 0; }
-  .tools { grid-column: 2; grid-row: 4; margin-top: 4px; }
+  .tools { display: flex; grid-column: 2; grid-row: 4; margin-top: 4px; }   /* keyboard hint is hidden here, so mouse users get the buttons too */
   .stops { padding: 5px 18px; border-width: 3px; }
   .stop { width: 26px; height: 26px; border-width: 4px; }
   :root { --peek: 34px; }
