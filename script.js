@@ -146,11 +146,6 @@
     save(); render(true);
   }
 
-  function undo() {
-    const t = turns();
-    if (t.length) { state.drawn -= t[t.length - 1].cards.length; save(); render(false); }
-  }
-
   function newGame() {
     if (!state.started) return;
     $('confirm').hidden = false;
@@ -162,11 +157,27 @@
     state = fresh(); save(); render(false);
   }
 
-  function openPast() {
-    $('past-grid').innerHTML = state.deck.slice(0, state.drawn).map(c => `<div class="card ${c.kind}">${face(c)}</div>`).join('')
-      || '<p>Nothing drawn yet.</p>';
+  // mode 'past': cards drawn this round, in order. mode 'left': cards still in the deck, in a FIXED order
+  // (never the real draw order, so nothing is given away).
+  function openCards(mode) {
+    let cards;
+    if (mode === 'past') {
+      cards = state.deck.slice(0, state.drawn);
+      $('past-title').textContent = 'Drawn this round';
+      $('past-sub').textContent = '';
+    } else {
+      const left = state.deck.slice(state.drawn);
+      const rank = (c) => DECK.findIndex(d => d.kind === c.kind && d.shape === c.shape);
+      cards = left.slice().sort((a, b) => rank(a) - rank(b));
+      const pink = left.filter(c => c.kind === 'underground').length;
+      $('past-title').textContent = 'Still in the deck';
+      $('past-sub').textContent = `${left.length} cards left, ${pink} Underground. Order is hidden.`;
+    }
+    $('past-grid').innerHTML = cards.map(c => `<div class="card ${c.kind}">${face(c)}</div>`).join('') || '<p>Nothing here.</p>';
     $('past').hidden = false;
   }
+  const openPast = () => openCards('past');
+  const openRemaining = () => openCards('left');
   function closePast() { $('past').hidden = true; }
 
   function render(animate) {
@@ -237,8 +248,8 @@
       }
       if (!$('past').hidden) { closePast(); return; }
       if (k === 'enter' || k === ' ') { e.preventDefault(); draw(); }
-      else if (k === 'backspace' || k === 'u') undo();
       else if (k === 'p') openPast();
+      else if (k === 'r') openRemaining();
       else if (k === 'f') {
         if (document.fullscreenElement) document.exitFullscreen();
         else document.documentElement.requestFullscreen?.();
@@ -246,7 +257,7 @@
     });
     $('past').addEventListener('click', closePast);
     $('btn-past').addEventListener('click', openPast);
-    $('btn-undo').addEventListener('click', undo);
+    $('btn-remaining').addEventListener('click', openRemaining);
     $('btn-new').addEventListener('click', newGame);
     $('confirm-yes').addEventListener('click', confirmNewGame);
     $('confirm-no').addEventListener('click', closeConfirm);

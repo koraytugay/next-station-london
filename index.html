@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=10">
+  <link rel="stylesheet" href="style.css?v=11">
 </head>
 <body class="loading">
   <div class="bg"></div>
@@ -40,7 +40,7 @@
     </section>
     <div class="tools">
       <button id="btn-past" class="btn no" type="button">Past cards</button>
-      <button id="btn-undo" class="btn no" type="button">Undo</button>
+      <button id="btn-remaining" class="btn no" type="button">Remaining</button>
       <button id="btn-new" class="btn yes" type="button">New game</button>
     </div>
   </div>
@@ -49,7 +49,8 @@
 
   <div id="past" class="overlay" hidden>
     <div class="overlay-box">
-      <h2>Drawn this round</h2>
+      <h2 id="past-title">Drawn this round</h2>
+      <p id="past-sub" class="sub"></p>
       <div id="past-grid" class="past-grid"></div>
       <p class="hint">Tap or press any key to close</p>
     </div>
@@ -67,9 +68,9 @@
     </div>
   </div>
 
-  <div class="footer-hint"><strong>Enter</strong> draw · <strong>Backspace</strong> undo · <strong>P</strong> past cards · <strong>F</strong> full screen · <strong>N</strong> new game</div>
+  <div class="footer-hint"><strong>Enter</strong> draw · <strong>P</strong> past cards · <strong>R</strong> remaining · <strong>F</strong> full screen · <strong>N</strong> new game</div>
   <div class="disclaimer">Unofficial fan-made tool. Next Station London™ is a trademark of Blue Orange Edition.</div>
 
-  <script src="script.js?v=10"></script>
+  <script src="script.js?v=11"></script>
 </body>
 </html>

@@ -139,6 +139,7 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 .past-grid .cap { display: none; }
 .past-grid { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
 .hint { margin-top: 18px; opacity: .7; }
+.overlay .sub { margin: -8px 0 16px; opacity: .8; }
 
 .footer-hint {
   position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: .85rem; letter-spacing: .04em;
@@ -174,7 +175,7 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 
 /* Touch buttons (phones have no keyboard) */
 .tools { display: none; gap: 10px; justify-content: center; margin-top: 10px; }
-.tools .btn { font-size: .85rem; padding: 8px 15px; box-shadow: 0 4px 0 var(--navy), 0 8px 14px rgba(0,0,0,.35); }
+.tools .btn { font-size: .8rem; padding: 8px 12px; box-shadow: 0 4px 0 var(--navy), 0 8px 14px rgba(0,0,0,.35); }
 @media (max-width: 760px) {
   .tools { display: flex; }
   .card { --reserve: 440px; }
