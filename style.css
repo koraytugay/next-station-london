@@ -178,7 +178,7 @@ main { flex: 1; display: flex; align-items: center; justify-content: center; wid
 .tools .btn { font-size: .8rem; padding: 8px 12px; box-shadow: 0 4px 0 var(--navy), 0 8px 14px rgba(0,0,0,.35); }
 @media (max-width: 760px) {
   .tools { display: flex; }
-  .card { --reserve: 440px; }
+  .card { --reserve: 400px; }
   .card { --w: clamp(210px, min(80vw, 340px, calc((100vh - var(--reserve)) / 1.4)), 340px); }
   .stage { padding-bottom: calc(14px + env(safe-area-inset-bottom)); }
   .card.held { transform: translateX(20px) rotate(4deg); }
