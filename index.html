@@ -7,13 +7,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=19">
+  <link rel="stylesheet" href="style.css?v=20">
 </head>
 <body class="loading">
   <div class="bg" aria-hidden="true"></div>
   <div id="sr-status" class="sr" role="status" aria-live="polite"></div>
 
-  <div class="stage">
+  <div id="stage" class="stage">
     <header>
       <h1>Next Station <span>London</span></h1>
       <div class="badges">
@@ -49,19 +49,20 @@
   <div id="splash" class="splash" hidden aria-hidden="true"><div id="splash-text"></div></div>
 
   <div id="past" class="overlay" hidden>
-    <div class="overlay-box">
+    <div class="overlay-box" role="dialog" aria-modal="true" aria-labelledby="past-title" aria-describedby="past-sub">
       <h2 id="past-title">Drawn this round</h2>
       <p id="past-sub" class="sub"></p>
       <div id="past-grid" class="past-grid"></div>
-      <p class="hint">Tap or press any key to close</p>
+      <button id="past-close" class="btn no" type="button">Close</button>
+      <p class="hint">Tap anywhere or press Esc to close</p>
     </div>
   </div>
 
   <div id="confirm" class="overlay" hidden>
-    <div class="dialog" role="alertdialog" aria-labelledby="confirm-title">
+    <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-desc">
       <div class="dialog-band"></div>
       <h2 id="confirm-title">Start a new game?</h2>
-      <p>The current game and all its rounds will be lost.</p>
+      <p id="confirm-desc">The current game and all its rounds will be lost.</p>
       <div class="dialog-buttons">
         <button id="confirm-no" class="btn no" type="button">No</button>
         <button id="confirm-yes" class="btn yes" type="button">Yes, new game</button>
@@ -72,6 +73,6 @@
   <div class="footer-hint"><strong>Enter</strong> draw · <strong>P</strong> past cards · <strong>R</strong> remaining · <strong>F</strong> full screen · <strong>N</strong> new game</div>
   <div class="disclaimer">Unofficial fan-made tool. Next Station London™ is a trademark of Blue Orange Edition.</div>
 
-  <script src="script.js?v=19"></script>
+  <script src="script.js?v=20"></script>
 </body>
 </html>

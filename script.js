@@ -177,12 +177,35 @@
     save(); render(true);
   }
 
+  // --- overlays: lock the page behind them, move focus in, give it back on close ---
+  let opener = null;
+  function openOverlay(el, focusEl) {
+    if (el.hidden && !opener) opener = document.activeElement;
+    el.hidden = false;
+    $('stage').setAttribute('inert', '');
+    focusEl.focus({ preventScroll: true });
+  }
+  function closeOverlay(el) {
+    if (el.hidden) return;
+    el.hidden = true;
+    $('stage').removeAttribute('inert');
+    const back = opener; opener = null;
+    if (back && back.isConnected && back !== document.body && back.focus) back.focus({ preventScroll: true });
+  }
+  // keep Tab inside the open overlay
+  function trapTab(e, root) {
+    const f = [...root.querySelectorAll('button')];
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+
   function newGame() {
     if (!state.started) return;
-    $('confirm').hidden = false;
-    $('confirm-no').focus();
+    openOverlay($('confirm'), $('confirm-no'));
   }
-  function closeConfirm() { $('confirm').hidden = true; }
+  function closeConfirm() { closeOverlay($('confirm')); }
   function confirmNewGame() {
     closeConfirm();
     state = fresh(); save(); render(false);
@@ -190,6 +213,7 @@
 
   // mode 'past': cards drawn this round, in order. mode 'left': cards still in the deck, in a FIXED order
   // (never the real draw order, so nothing is given away).
+  let pastMode = null;
   function openCards(mode) {
     let items;   // [{c, n}] n = turn number (the two cards of a Railroad Switch turn share one number)
     if (mode === 'past') {
@@ -207,13 +231,14 @@
     $('past-grid').innerHTML = items.map((x, i) =>
       `<div class="card ${x.c.kind}${mode === 'past' && i === items.length - 1 ? ' latest' : ''}">${face(x.c)}${x.n ? `<div class="num">${x.n}</div>` : ''}</div>`
     ).join('') || '<p>Nothing here.</p>';
-    $('past').hidden = false;
+    pastMode = mode;
+    openOverlay($('past'), $('past-close'));
     const latest = $('past-grid').querySelector('.latest');
     if (latest) latest.scrollIntoView({ block: 'nearest' });
   }
   const openPast = () => openCards('past');
   const openRemaining = () => openCards('left');
-  function closePast() { $('past').hidden = true; }
+  function closePast() { closeOverlay($('past')); }
 
   function render(animate) {
     const card = $('card'), pile = $('pile');
@@ -285,12 +310,21 @@
       if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
       const k = e.key.toLowerCase();
       if (!$('confirm').hidden) {
-        // Only handle our own keys; Tab, Enter on a focused button, F5 etc. keep their default behaviour.
-        if (k === 'y') { e.preventDefault(); confirmNewGame(); }
+        // Only handle our own keys; Enter/Space on a focused button, F5 etc. keep their default behaviour.
+        if (k === 'tab') trapTab(e, $('confirm'));
+        else if (k === 'y') { e.preventDefault(); confirmNewGame(); }
         else if (k === 'n' || k === 'escape') { e.preventDefault(); closeConfirm(); }
         return;
       }
-      if (!$('past').hidden) { closePast(); return; }
+      if (!$('past').hidden) {
+        if (k === 'tab') trapTab(e, $('past'));
+        else if (k === 'escape' || k === 'enter' || k === ' ' || k === 'backspace') { e.preventDefault(); closePast(); }
+        else if (k === 'p' || k === 'r') {
+          const mode = k === 'p' ? 'past' : 'left';
+          if (mode === pastMode) closePast(); else openCards(mode);
+        }
+        return;
+      }
       if (k === 'enter' || k === ' ') {
         if (e.target.closest && e.target.closest('button')) return; // let a focused button do its own thing
         e.preventDefault(); draw();
@@ -303,6 +337,7 @@
       } else if (k === 'n') newGame();
     });
     $('past').addEventListener('click', closePast);
+    $('past-close').addEventListener('click', closePast);
     // After a mouse/touch click, drop focus so Enter/Space draw again instead of re-pressing the button.
     const tool = (fn) => (e) => { if (e.detail) e.currentTarget.blur(); fn(); };
     $('btn-past').addEventListener('click', tool(openPast));
