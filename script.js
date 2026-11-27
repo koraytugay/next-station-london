@@ -29,6 +29,11 @@
     return a;
   };
 
+  // A turn is one flip, except a Railroad Switch from turn 3 on, which flips the next card in the same turn.
+  // takeSize is the single place that rule lives; both draw() and turns() use it.
+  const takeSize = (deck, i, turnNo) =>
+    (deck[i].shape === 'switch' && turnNo >= SWITCH_MIN_TURN && i + 1 < deck.length) ? 2 : 1;
+
   let state;
   const fresh = (round = 1, started = false) => ({ round, deck: shuffle(DECK), drawn: 0, started });
   const load = () => { try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; } };
@@ -45,21 +50,30 @@
       if (!canon || deck.includes(canon)) return null;
       deck.push(canon);
     }
+    if (!possibleDrawCounts(deck).includes(s.drawn)) return null;
     return { round: s.round, deck, drawn: s.drawn, started: s.started };
   }
+  // Replays the rules over a deck: every `drawn` value a real game can reach, i.e. each turn boundary up to and
+  // including the card that ends the round (a Railroad Switch and its follow-up are never split, nothing is drawn after).
+  function possibleDrawCounts(deck) {
+    const counts = [0];
+    let i = 0, turnNo = 1, pink = 0;
+    while (i < deck.length && pink < PINK_TO_END) {
+      const n = takeSize(deck, i, turnNo);
+      for (let k = 0; k < n; k++) if (deck[i + k].kind === 'underground') pink++;
+      i += n; turnNo++;
+      counts.push(i);
+    }
+    return counts;
+  }
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify({ ...state, v: STATE_VERSION })); } catch {} };
-
-  // A turn is one flip, except a Railroad Switch from turn 3 on, which flips the next card in the same turn.
-  // takeSize is the single place that rule lives; both draw() and turns() use it.
-  const takeSize = (i, turnNo) =>
-    (state.deck[i].shape === 'switch' && turnNo >= SWITCH_MIN_TURN && i + 1 < state.deck.length) ? 2 : 1;
 
   function computeTurns() {
     const out = [];
     let i = 0;
     while (i < state.drawn) {
       const c = state.deck[i], turnNo = out.length + 1;
-      const n = Math.min(takeSize(i, turnNo), state.drawn - i);
+      const n = Math.min(takeSize(state.deck, i, turnNo), state.drawn - i);
       const sw = c.shape !== 'switch' ? null : (turnNo >= SWITCH_MIN_TURN ? 'active' : 'ignored');
       out.push({ cards: state.deck.slice(i, i + n), sw });
       i += n;
@@ -126,7 +140,7 @@
       save(); render(false); return;
     }
     if (!state.deck[state.drawn]) return;
-    state.drawn += takeSize(state.drawn, turns().length + 1);
+    state.drawn += takeSize(state.deck, state.drawn, turns().length + 1);
     if (roundOver()) lockUntil = now + LOCK_ROUND_END_MS;
     save(); render(true);
   }
