@@ -195,7 +195,8 @@
         <div class="back-sub">Press <kbd>Enter</kbd>${state.started ? ' to draw' : ''}</div></div>`;
     } else {
       card.classList.add(last.kind);
-      card.innerHTML = face(last);
+      card.innerHTML = face(last) + (over ? '<div class="sash">Last card</div>' : '');
+      if (over) card.classList.add('final');
       if (animate) { void card.offsetWidth; card.classList.add('dealt'); }
     }
 
